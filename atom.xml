@@ -1,20 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
 
-  <title><![CDATA[Huan]]></title>
+  <title><![CDATA[HuanLiu's Blog]]></title>
   <link href="http://MrBoog.github.io/atom.xml" rel="self"/>
   <link href="http://MrBoog.github.io/"/>
-  <updated>2014-03-29T23:42:58+08:00</updated>
+  <updated>2014-03-30T16:29:45+08:00</updated>
   <id>http://MrBoog.github.io/</id>
   <author>
-    <name><![CDATA[Your Name]]></name>
+    <name><![CDATA[HuanLiu]]></name>
     
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
   
   <entry>
-    <title type="html"><![CDATA[Test]]></title>
+    <title type="html"><![CDATA[Test Again]]></title>
+    <link href="http://MrBoog.github.io/blog/2014/03/30/test-again/"/>
+    <updated>2014-03-30T16:29:11+08:00</updated>
+    <id>http://MrBoog.github.io/blog/2014/03/30/test-again</id>
+    <content type="html"><![CDATA[
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Test - Oops]]></title>
     <link href="http://MrBoog.github.io/blog/2014/03/27/test/"/>
     <updated>2014-03-27T23:17:38+08:00</updated>
     <id>http://MrBoog.github.io/blog/2014/03/27/test</id>
