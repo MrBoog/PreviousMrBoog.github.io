@@ -4,7 +4,7 @@
   <title><![CDATA[HuanLiu's Blog]]></title>
   <link href="http://MrBoog.github.io/atom.xml" rel="self"/>
   <link href="http://MrBoog.github.io/"/>
-  <updated>2014-03-30T16:29:45+08:00</updated>
+  <updated>2014-03-30T16:49:55+08:00</updated>
   <id>http://MrBoog.github.io/</id>
   <author>
     <name><![CDATA[HuanLiu]]></name>
@@ -18,15 +18,6 @@
     <link href="http://MrBoog.github.io/blog/2014/03/30/test-again/"/>
     <updated>2014-03-30T16:29:11+08:00</updated>
     <id>http://MrBoog.github.io/blog/2014/03/30/test-again</id>
-    <content type="html"><![CDATA[
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Test - Oops]]></title>
-    <link href="http://MrBoog.github.io/blog/2014/03/27/test/"/>
-    <updated>2014-03-27T23:17:38+08:00</updated>
-    <id>http://MrBoog.github.io/blog/2014/03/27/test</id>
     <content type="html"><![CDATA[
 ]]></content>
   </entry>
