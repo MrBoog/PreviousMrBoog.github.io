@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
 
-  <title><![CDATA[HuanLiu's Blog]]></title>
-  <link href="http://MrBoog.github.io/atom.xml" rel="self"/>
+  <title><![CDATA[Category: iOS | HuanLiu's Blog]]></title>
+  <link href="http://MrBoog.github.io/blog/categories/ios/atom.xml" rel="self"/>
   <link href="http://MrBoog.github.io/"/>
   <updated>2014-04-07T11:53:15+08:00</updated>
   <id>http://MrBoog.github.io/</id>
@@ -31,7 +31,7 @@
 浏览器中输入<code>localhost/~[用户名]</code>，就可以直接访问<code>/Users/[用户名]/Sites</code> 目录.</p></li>
 <li><p>对于10.8或10.9的用户运行apache服务，需要通过terminal手动开启, 输入下述命令开启服务<br/>
 <code>sudo apachectl start</code>  <br/>
-这样就可以了，浏览器中输入:&ldquo;localhost&rdquo;,应该能看到&#8221;It works&#8221;的字样. <br/>
+这样就可以了，浏览器中输入:&ldquo;localhost&rdquo;,应该能看到"It works"的字样. <br/>
 <img src="../images/image_source/apns_5.png" alt="" /> <br/>
 cd /,到根目录下，在根目录的Library/WebServer/Documents/里面就是我们访问的地方.</p></li>
 </ol>
