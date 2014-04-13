@@ -4,7 +4,7 @@
   <title><![CDATA[Category: iOS | HuanLiu's Blog]]></title>
   <link href="http://MrBoog.github.io/blog/categories/ios/atom.xml" rel="self"/>
   <link href="http://MrBoog.github.io/"/>
-  <updated>2014-04-13T18:38:16+08:00</updated>
+  <updated>2014-04-13T21:51:53+08:00</updated>
   <id>http://MrBoog.github.io/</id>
   <author>
     <name><![CDATA[HuanLiu]]></name>
@@ -12,15 +12,6 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
-  
-  <entry>
-    <title type="html"><![CDATA[CoreGraphics]]></title>
-    <link href="http://MrBoog.github.io/blog/2014/04/12/coregraphics/"/>
-    <updated>2014-04-12T21:54:18+08:00</updated>
-    <id>http://MrBoog.github.io/blog/2014/04/12/coregraphics</id>
-    <content type="html"><![CDATA[
-]]></content>
-  </entry>
   
   <entry>
     <title type="html"><![CDATA[MacOS下配置php环境测试推送]]></title>
