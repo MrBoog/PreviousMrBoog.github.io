@@ -4,7 +4,7 @@
   <title><![CDATA[HuanLiu's Blog]]></title>
   <link href="http://MrBoog.github.io/atom.xml" rel="self"/>
   <link href="http://MrBoog.github.io/"/>
-  <updated>2014-04-20T00:41:52+08:00</updated>
+  <updated>2014-04-20T00:43:26+08:00</updated>
   <id>http://MrBoog.github.io/</id>
   <author>
     <name><![CDATA[HuanLiu]]></name>
@@ -18,9 +18,7 @@
     <link href="http://MrBoog.github.io/blog/2014/04/17/lldb/"/>
     <updated>2014-04-17T23:36:03+08:00</updated>
     <id>http://MrBoog.github.io/blog/2014/04/17/lldb</id>
-    <content type="html"><![CDATA[<h1>LLDB扩展插件chisel</h1>
-
-<p>苹果的开源项目<a href="http://llvm.org/releases/download.html">LLVM</a>，改变了编译器市场，也为行业做出了突出贡献。据苹果所说，这项技术使得苹果平台，反映速度更快更加安全。对于开发者，苹果也带来了新的调试工具:LLDB。</p>
+    <content type="html"><![CDATA[<p>苹果的开源项目<a href="http://llvm.org/releases/download.html">LLVM</a>，改变了编译器市场，也为行业做出了突出贡献。据苹果所说，这项技术使得苹果平台，反映速度更快更加安全。对于开发者，苹果也带来了新的调试工具:LLDB。</p>
 
 <p>我们在开发中经常要调试程序。调试的时候，熟练使用断点加LLDB命令配合，的确能提高工作的效率。</p>
 
