@@ -9,7 +9,7 @@
   <meta name="author" content="HuanLiu">
 
   
-  <meta name="description" content="在学习和使用Objective-c语言的时候，我们随处可见&#8217;@&lsquo;符号，这和其他语言有很大不同。 由于c、c++本身没有&#8217;@&lsquo;，Oc这样设计可能是为了更好地和c、c++混编。正如这篇文章所提到的。不过&rsquo;@&lsquo;的用途多种多样， &hellip;">
+  <meta name="description" content="LLDB扩展插件chisel 苹果的开源项目LLVM，改变了编译器市场，也为行业做出了突出贡献。据苹果所说，这项技术使得苹果平台，反映速度更快更加安全。对于开发者，苹果也带来了新的调试工具:LLDB。 我们在开发中经常要调试程序。调试的时候，熟练使用断点加LLDB命令配合，的确能提高工作的效率。 &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -91,6 +91,110 @@ $(document).bind('DOMNodeInserted', function(event) {
       
   <header>
     
+      <h1 class="entry-title"><a href="/blog/2014/04/17/lldb/">LLDB以及扩展插件chisel浅析</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-04-17T23:36:03+08:00" pubdate data-updated="true">Apr 17<span>th</span>, 2014</time>
+        
+           | <a href="/blog/2014/04/17/lldb/#disqus_thread"
+             data-disqus-identifier="http://MrBoog.github.io/blog/2014/04/17/lldb/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h1>LLDB扩展插件chisel</h1>
+
+<p>苹果的开源项目<a href="http://llvm.org/releases/download.html">LLVM</a>，改变了编译器市场，也为行业做出了突出贡献。据苹果所说，这项技术使得苹果平台，反映速度更快更加安全。对于开发者，苹果也带来了新的调试工具:LLDB。</p>
+
+<p>我们在开发中经常要调试程序。调试的时候，熟练使用断点加LLDB命令配合，的确能提高工作的效率。</p>
+
+<p>Xcode的编译器，已经从GCC转到<a href="http://clang.llvm.org/">Clang</a>。调试工具也由gdb转为lldb。这篇文章可以看到他们的命令区别：<a href="http://lldb.llvm.org/lldb-gdb.html">http://lldb.llvm.org/lldb-gdb.html</a>。</p>
+
+<p>学习lldb的过程，是不断积累的过程。建议多使用help命令，来查看命令的详细说明。    <br/>
+如：<code>p(expr)、po(expr -o)、bt、br、image、process、thread</code>等等。</p>
+
+<p>有时候，命令使用不对，会遇到一些错误。例如下面所示：</p>
+
+<pre><code>(lldb) p [self.view frame]          
+error: 'frame' has unknown return type; cast the call to its declared return type
+error: 1 errors parsing expression      
+(lldb) p [[self.view subviews] count]
+error: no known method '-count'; cast the message send to the method's return type
+error: 1 errors parsing expression
+</code></pre>
+
+<p>这时候，就要根据error的提示信息，检查命令的格式了。对于上面的错误，我们就显示声明一下‘frame’的类型，做如下调整：</p>
+
+<pre><code>(lldb) p (CGRect)[self.view frame]          
+(CGRect) $0 = origin=(x=0, y=0) size=(width=320, height=568)        
+(lldb) p (int)[[self.view subviews] count]  
+(int) $0 = 3
+</code></pre>
+
+<hr />
+
+<h1>chisel</h1>
+
+<p>Facebook 团队编写了一份基于LLDB的扩展插件<a href="https://github.com/facebook/chisel#custom-commands">Chisel</a>，并且开源了。我们一起来配置一下吧。         <br/>
+安装的话，很简单。就利用homebrew来安装chisel即可。</p>
+
+<pre><code>brew install chisel
+echo  "command script import /usr/local/Cellar/chisel/1.0.0/libexec/fblldb.py" &gt; ~/.lldbinit
+</code></pre>
+
+<p>利用help命令，查看chisel所支持的命令。也可以利用help查看具体的某条命令的详细说明。</p>
+
+<p>例如：有时候，我们想查看一下视图的位置，但很多视图摞在一起，背景色又一样，不好区分。我们在lldb命令模式下输入 help border看一下。这时，会有如下输出：</p>
+
+<pre><code>(lldb) help border
+Draws a border around &lt;viewOrLayer&gt;. Color and width can be optionally provided.
+
+Arguments:
+  &lt;viewOrLayer&gt;; Type: UIView/CALayer *; The view/layer to border.
+
+Options:
+  --color/-c &lt;color&gt;; Type: string; A color name such as 'red', 'green', 'magenta', etc.
+  --width/-w &lt;width&gt;; Type: CGFloat; Desired width of border.
+
+Syntax: border [--color=color] [--width=width] &lt;viewOrLayer&gt;
+</code></pre>
+
+<p>如上面所说Draws a border around view。border命令可以动态改变 指定的view或者Layer边框颜色和宽度。只要输入指定参数即可。在某个viewController下面，可以尝试输入：</p>
+
+<pre><code>border -c red [self view]
+</code></pre>
+
+<p>这样接着运行，当前的view边框的颜色就会变为红色了。可以很清晰的看清view的边界。很给力吧，这样省去了模糊不清的颜色混合层。当然，界面复杂的话，我们也可以借助工具reveal来查看。别的不在举例了，我们可以直接借助help命令来了解。如 help pviews等等。
+这里有一个表格</p>
+
+<p><img src="../images/image_source/chisel_1.jpeg" alt="" /></p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
       <h1 class="entry-title"><a href="/blog/2014/04/13/objective-czhong-de-at/">Objective-c中的&#8217;@&#8217;</a></h1>
     
     
@@ -141,13 +245,13 @@ $(document).bind('DOMNodeInserted', function(event) {
 </ul>
 
 
-<p>以上涉及的这些，有的是比较基础的天天跟我们见面，也有的是我们这辈子可能都用不到的。下面，我们就给几个不常见的，或者比较重要的并且容易忽视的用法，总结一下。</p>
+<p>以上涉及的这些，有的十分常见，也有的我们可能这辈子都用不到。下面，我们就给几个不常见的，或者比较重要的并且容易忽视的用法，总结一下。</p>
 
 <p>1 @compatibility_alias</p>
 
 <p>关于@compatibility_alias的用法，Mattt Thompson大大举过很好的<a href="http://nshipster.com/at-compiler-directives/">示例</a>。在iOS5下想使用collectionView的效果，无疑<a href="https://github.com/ptshih/PSCollectionView">PSTCollectionView</a> 是最佳的替代方案，下面的代码，可以为PSTCollectView起个别名。这样在iOS5我们也可以制造出使用UICollectionView的幻觉，重点是以后升级可以省去很多麻烦：</p>
 
-<blockquote><pre><code>  #if __IPHONE_OS_VERSION_MAX_ALLOWED &lt; 60000 
+<pre><code>    #if __IPHONE_OS_VERSION_MAX_ALLOWED &lt; 60000 
     @compatibility_alias UICollectionViewController PSTCollectionViewController;        
     @compatibility_alias UICollectionView PSTCollectionView;    
     @compatibility_alias UICollectionReusableView PSTCollectionReusableView;    
@@ -158,72 +262,74 @@ $(document).bind('DOMNodeInserted', function(event) {
     @protocol UICollectionViewDataSource &lt;PSTCollectionViewDataSource&gt; @end     
     @protocol UICollectionViewDelegate &lt;PSTCollectionViewDelegate&gt; @end             
  #endif 
-</code></pre></blockquote>
+</code></pre>
 
 <p>2 Object Literals</p>
 
+<p> 2012年苹果加入了如下字面值，简化了代码。</p>
+
 <p> NSArray Literal： @[ ]</p>
 
-<blockquote><pre><code>  NSArray * array = @[ @1, @"b", @YES];       
-  id str = array[0];      
-</code></pre></blockquote>
+<pre><code>    NSArray * array = @[ @1, @"b", @YES];       
+    id str = array[0];      
+</code></pre>
 
 <p> NSDictionary Literal:  @{ }</p>
 
-<blockquote><pre><code>  NSDictionary * dict = @{ @"key1" : @"obj1", @"key2" : @"obj2"}; 
-  id obj1 = dict[@"key1"];        
-</code></pre></blockquote>
+<pre><code>    NSDictionary * dict = @{ @"key1" : @"obj1", @"key2" : @"obj2"}; 
+    id obj1 = dict[@"key1"];        
+</code></pre>
 
 <p> NSNumber Literal:</p>
 
-<blockquote><pre><code>  NSNumber * number = @'a';//([NSNumber numberWithChar:'a'])          
-  NSNumber * number = @1;//([NSNumber numberWithInt:1])       
-  NSNumber * number   = @12ll;//([NSNumber numberWithLongLong:12ll])
-  NSNumber * number   = @12ul;//([NSNumber numberWithUnsignedLong:12ul])  
-  NSNumber * number   = @12.3f;//([NSNumber numberWithFloat:12.3f])   
-  NSNumber * number = @YES;//([NSNumber numberWithBool:YES])      
-</code></pre></blockquote>
+<pre><code>    NSNumber * number = @'a';//([NSNumber numberWithChar:'a'])          
+    NSNumber * number = @1;//([NSNumber numberWithInt:1])       
+    NSNumber * number   = @12ll;//([NSNumber numberWithLongLong:12ll])
+    NSNumber * number   = @12ul;//([NSNumber numberWithUnsignedLong:12ul])  
+    NSNumber * number   = @12.3f;//([NSNumber numberWithFloat:12.3f])   
+    NSNumber * number = @YES;//([NSNumber numberWithBool:YES])      
+</code></pre>
 
 <p>NSSet Literal:    <br/>
 以上应该大部分集合类的literal都有了，不过类似的NSSet Literal还没有提供。        <br/>
 我们可以用数组初始化的方式:</p>
 
-<blockquote><pre><code>    NSSet * set = [NSSet setWithArray:@[@"yes",@YES]];
-</code></pre></blockquote>
+<pre><code>NSSet * set = [NSSet setWithArray:@[@"yes",@YES]];
+</code></pre>
 
 <p>当然我们也可以通过自己宏定义来实现：</p>
 
-<blockquote><pre><code> #define $(...)  [[NSSet alloc] initWithObjects:__VA_ARGS__, nil]   
-  或者            
+<pre><code> #define $(...)  [[NSSet alloc] initWithObjects:__VA_ARGS__, nil]   
+  //或者          
  #define $(...)  [NSSet setWithObjects:__VA_ARGS__, nil]        
-  这样就可以用了:      
+ //这样就可以用了:       
  NSSet *set = $(@"hello",@"world",@"!");        
-</code></pre></blockquote>
+</code></pre>
 
-<p>Expressions:@( )      <br/>
-@( )，会动态评估里面的表达式。返回值基于，计算后的表达式值的合适的对象常量。如</p>
+<p>Expressions:@( )</p>
 
-<blockquote><pre><code>[@("hello word") class] : NSString      
-[@(77 - 88) class] : NSNumber。
-</code></pre></blockquote>
+<p>@( )，会动态评估里面的表达式。返回值：计算后的表达式值的对象常量。如</p>
 
-<p>3 @encode</p>
+<pre><code>[@("hello word") class] //返回类型 NSString     
+[@(77 - 88) class] //返回类型 NSNumber。
+</code></pre>
 
-<blockquote><p>返回一个的char *类型的类型编码,<a href="https://developer.apple.com/library/mac/documentation/Cocoa/Conceptual/ObjCRuntimeGuide/Articles/ocrtTypeEncodings.html">苹果官方文档有介绍</a>    <br/>
+<p>3 @encode         <br/>
+返回一个的char *类型的类型编码,<a href="https://developer.apple.com/library/mac/documentation/Cocoa/Conceptual/ObjCRuntimeGuide/Articles/ocrtTypeEncodings.html">苹果官方文档有介绍</a>     <br/>
 const char * objCType = @encode(float);       <br/>
-printf(&ldquo;%s&rdquo;,objCType);</p></blockquote>
+printf(&ldquo;%s&rdquo;,objCType);</p>
 
 <p>4 @defs</p>
 
-<blockquote><p>我们都知道，Oc的类是在c语言的结构体的基础上建立起来的。@defsd会返回Objective-C类相同的布局，例如下述代码，会得到一个相同结构的结构体。</p>
+<p>我们都知道，Oc的类是在c语言的结构体的基础上建立起来的。@defsd会返回Objective-C类相同的布局，例如下述代码，会得到一个相同结构的结构体。</p>
 
 <pre><code>struct cStructure   
 {   
 @defs(NSObject);    
-} *cStruct;         
+} *cStruct;     
 </code></pre>
 
-<p>不过，如果你现在尝试如上代码，你会得到：@defs is not support on this platform now 或者 @defs is no longer supported in new ABI(Application Binary Interface)的错误。因为大概xcode3.2后我们就已经无法在现在的Objective-C中使用它了。</p></blockquote>
+<p>不过，如果你现在尝试如上代码，你会得到：@defs is not support on this platform now 或者 @defs is no longer supported in new ABI(Application Binary Interface)的错误。因为大概xcode3.2后我们就已经无法在现在的Objective-C中使用它了。</p>
 </div>
   
   
@@ -353,6 +459,10 @@ sudo apachectl restart</p></blockquote>
     <section>
   <h1>Recent Posts</h1>
   <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2014/04/17/lldb/">LLDB以及扩展插件chisel浅析</a>
+      </li>
     
       <li class="post">
         <a href="/blog/2014/04/13/objective-czhong-de-at/">Objective-c中的&#8217;@&#8217;</a>
