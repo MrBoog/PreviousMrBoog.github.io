@@ -4,7 +4,7 @@
   <title><![CDATA[Category: iOS | HuanLiu's Blog]]></title>
   <link href="http://MrBoog.github.io/blog/categories/ios/atom.xml" rel="self"/>
   <link href="http://MrBoog.github.io/"/>
-  <updated>2014-04-20T00:43:26+08:00</updated>
+  <updated>2014-04-25T23:27:51+08:00</updated>
   <id>http://MrBoog.github.io/</id>
   <author>
     <name><![CDATA[HuanLiu]]></name>
@@ -66,7 +66,8 @@ cd /,到根目录下，在根目录的Library/WebServer/Documents/里面就是�
 
 <p>目录下建立用户级的Sites，命令如下：</p>
 
-<blockquote><p>sudo mkdir ~/Sites</p></blockquote>
+<pre><code> sudo mkdir ~/Sites
+</code></pre>
 
 <p>检查下面这个文件夹下面，有没有 “username”.conf文件，我的名字是mac，</p>
 
@@ -74,21 +75,24 @@ cd /,到根目录下，在根目录的Library/WebServer/Documents/里面就是�
 
 <p>如果没有的话就创建一个，</p>
 
-<blockquote><p>sudo vi /etc/apache2/users/&ldquo;username&rdquo;.conf</p></blockquote>
+<pre><code> sudo vi /etc/apache2/users/"username".conf
+</code></pre>
 
 <p>用vi打开后，将下面这里username替换成自己的，并复制进去，然后:wq保存。</p>
 
-<blockquote><p>&lt; Directory &ldquo;/Users/&lsquo;username&rsquo;/Sites/&rdquo;> <br/>
- Options Indexes MultiViews<br/>
- AllowOverride All<br/>
- Order allow,deny<br/>
- Allow from all  <br/>
- &lt; /Directory></p></blockquote>
+<pre><code> &lt;Directory "/Users/'username'/Sites/"&gt;   
+ Options Indexes MultiViews  
+ AllowOverride All  
+ Order allow,deny  
+ Allow from all    
+ &lt;/Directory&gt;
+</code></pre>
 
 <p>保存后分配相应权限，然后重启Apache。</p>
 
-<blockquote><p>sudo chmod 755 /etc/apache2/users/你的用户名.conf<br/>
-sudo apachectl restart</p></blockquote>
+<pre><code> sudo chmod 755 /etc/apache2/users/你的用户名.conf  
+ sudo apachectl restart
+</code></pre>
 
 <p>到此，访问<code>http://localhost/~'username'</code>试试看，我们也可以访问用户级站点了。</p>
 ]]></content>

@@ -4,7 +4,7 @@
   <title><![CDATA[Category: LLDB | HuanLiu's Blog]]></title>
   <link href="http://MrBoog.github.io/blog/categories/lldb/atom.xml" rel="self"/>
   <link href="http://MrBoog.github.io/"/>
-  <updated>2014-04-20T00:43:26+08:00</updated>
+  <updated>2014-04-25T23:27:51+08:00</updated>
   <id>http://MrBoog.github.io/</id>
   <author>
     <name><![CDATA[HuanLiu]]></name>
@@ -53,8 +53,24 @@ error: 1 errors parsing expression
 安装的话，很简单。就利用homebrew来安装chisel即可。</p>
 
 <pre><code>brew install chisel
-echo  "command script import /usr/local/Cellar/chisel/1.0.0/libexec/fblldb.py" &gt; ~/.lldbinit
 </code></pre>
+
+<p>安装显示如下：
+<img src="../images/image_source/chisel_2.jpeg" alt="" /></p>
+
+<p>根据警告提示，需要把标注的部分文字加到~/.lldbinit文件里面:</p>
+
+<pre><code>//可以cd ~ , ls -l查看一下是否有 .lldbinit
+
+vim ~/.lldbinit
+//将下面的文字加进去。
+command script import /usr/local/Cellar/chisel/1.0.0/libexec/fblldb.py
+然后:wq保存一下
+</code></pre>
+
+<p>这样就ok啦。</p>
+
+<p>如果你奇怪为什么要修改.lldbinit，可以去官网搜一下，关于这个文件的介绍：<a href="http://lldb.llvm.org/tutorial.html">http://lldb.llvm.org/tutorial.html</a>，查找关键字lldbinit即可。</p>
 
 <p>利用help命令，查看chisel所支持的命令。也可以利用help查看具体的某条命令的详细说明。</p>
 
