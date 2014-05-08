@@ -4,7 +4,7 @@
   <title><![CDATA[HuanLiu's Blog]]></title>
   <link href="http://MrBoog.github.io/atom.xml" rel="self"/>
   <link href="http://MrBoog.github.io/"/>
-  <updated>2014-05-07T23:10:52+08:00</updated>
+  <updated>2014-05-08T22:09:35+08:00</updated>
   <id>http://MrBoog.github.io/</id>
   <author>
     <name><![CDATA[HuanLiu]]></name>
@@ -14,13 +14,11 @@
 
   
   <entry>
-    <title type="html"><![CDATA[iOS_国际化]]></title>
+    <title type="html"><![CDATA[iOS 应用的国际化[转]]]></title>
     <link href="http://MrBoog.github.io/blog/2014/04/26/ios-guo-ji-hua-zhuan/"/>
     <updated>2014-04-26T23:03:17+08:00</updated>
     <id>http://MrBoog.github.io/blog/2014/04/26/ios-guo-ji-hua-zhuan</id>
-    <content type="html"><![CDATA[<h1>iOS 应用的国际化[转]</h1>
-
-<p>本文翻译至 <a href="http://www.raywenderlich.com/64401/internationalization-tutorial-for-ios-2014">http://www.raywenderlich.com/64401/internationalization-tutorial-for-ios-2014</a></p>
+    <content type="html"><![CDATA[<p>本文翻译至 <a href="http://www.raywenderlich.com/64401/internationalization-tutorial-for-ios-2014">http://www.raywenderlich.com/64401/internationalization-tutorial-for-ios-2014</a></p>
 
 <p>原作者：<a href="http://www.raywenderlich.com/u/ali.hafizji">Ali Hafizji</a></p>
 
