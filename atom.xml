@@ -4,7 +4,7 @@
   <title><![CDATA[HuanLiu's Blog]]></title>
   <link href="http://MrBoog.github.io/atom.xml" rel="self"/>
   <link href="http://MrBoog.github.io/"/>
-  <updated>2014-05-08T22:09:35+08:00</updated>
+  <updated>2014-06-09T23:38:05+08:00</updated>
   <id>http://MrBoog.github.io/</id>
   <author>
     <name><![CDATA[HuanLiu]]></name>
@@ -12,6 +12,76 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Random in iOS]]></title>
+    <link href="http://MrBoog.github.io/blog/2014/06/09/random-in-ios/"/>
+    <updated>2014-06-09T23:10:41+08:00</updated>
+    <id>http://MrBoog.github.io/blog/2014/06/09/random-in-ios</id>
+    <content type="html"><![CDATA[<p>生成随机数   <br/>
+arc4random(void)//不够平衡<br/>
+推荐    <br/>
+arc4random_uniform(u_int32_t)</p>
+
+<p>生成 [0 , n )，之间的随机数：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>NSUInteger foo = arc4random_uniform(n);</span></code></pre></td></tr></table></div></figure>
+
+
+<p>生成 [minimum , maximum]，之间的随机数：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>NSUInteger foo = arc4random_uniform((maximum - minimum) + 1) + minimum;</span></code></pre></td></tr></table></div></figure>
+
+
+<p>除整数之外，产生(0 , 1)，之前的随机数：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>//先种随机种子
+</span><span class='line'>srand48(time(0));
+</span><span class='line'>double foo = drand48();</span></code></pre></td></tr></table></div></figure>
+
+
+<p>延伸一下，随机取数组中的元素：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>//arc4random_uniform(n) 随机范围是[0，n），可直接用于数组下标
+</span><span class='line'>if ([array count] &gt; 0) {
+</span><span class='line'>  id obj = array[arc4random_uniform([array count])];
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>没有使用NSSet，却想打乱顺序：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>NSMutableArray *mutableArray = [NSMutableArray arrayWithArray:array];
+</span><span class='line'>NSUInteger count = [mutableArray count];
+</span><span class='line'>// See http://en.wikipedia.org/wiki/Fisher–Yates_shuffle
+</span><span class='line'>if (count &gt; 1) {
+</span><span class='line'>  for (NSUInteger i = count - 1; i &gt; 0; --i) {
+</span><span class='line'>      [mutableArray exchangeObjectAtIndex:i withObjectAtIndex:arc4random_uniform((int32_t)(i + 1))];
+</span><span class='line'>  }
+</span><span class='line'>}
+</span><span class='line'>
+</span><span class='line'>NSArray *randomArray = [NSArray arrayWithArray:mutableArray];</span></code></pre></td></tr></table></div></figure>
+
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[iOS 应用的国际化[转]]]></title>

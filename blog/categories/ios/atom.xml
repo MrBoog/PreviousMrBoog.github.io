@@ -4,7 +4,7 @@
   <title><![CDATA[Category: iOS | HuanLiu's Blog]]></title>
   <link href="http://MrBoog.github.io/blog/categories/ios/atom.xml" rel="self"/>
   <link href="http://MrBoog.github.io/"/>
-  <updated>2014-05-08T22:09:35+08:00</updated>
+  <updated>2014-06-09T23:38:05+08:00</updated>
   <id>http://MrBoog.github.io/</id>
   <author>
     <name><![CDATA[HuanLiu]]></name>
@@ -12,6 +12,65 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Random in iOS]]></title>
+    <link href="http://MrBoog.github.io/blog/2014/06/09/random-in-ios/"/>
+    <updated>2014-06-09T23:10:41+08:00</updated>
+    <id>http://MrBoog.github.io/blog/2014/06/09/random-in-ios</id>
+    <content type="html"><![CDATA[<p>生成随机数   <br/>
+arc4random(void)//不够平衡<br/>
+推荐    <br/>
+arc4random_uniform(u_int32_t)</p>
+
+<p>生成 [0 , n )，之间的随机数：</p>
+
+<p><code>
+NSUInteger foo = arc4random_uniform(n);
+</code></p>
+
+<p>生成 [minimum , maximum]，之间的随机数：</p>
+
+<p><code>
+NSUInteger foo = arc4random_uniform((maximum - minimum) + 1) + minimum;
+</code></p>
+
+<p>除整数之外，产生(0 , 1)，之前的随机数：</p>
+
+<p><code>
+//先种随机种子
+srand48(time(0));
+double foo = drand48();
+</code></p>
+
+<p>延伸一下，随机取数组中的元素：</p>
+
+<p><code>
+//arc4random_uniform(n) 随机范围是[0，n），可直接用于数组下标
+if ([array count] &gt; 0) {
+  id obj = array[arc4random_uniform([array count])];
+}
+</code></p>
+
+<p>没有使用NSSet，却想打乱顺序：</p>
+
+<p>```
+NSMutableArray *mutableArray = [NSMutableArray arrayWithArray:array];
+NSUInteger count = [mutableArray count];
+// See <a href="http://en.wikipedia.org/wiki/Fisher%E2%80%93Yates_shuffle">http://en.wikipedia.org/wiki/Fisher%E2%80%93Yates_shuffle</a>
+if (count > 1) {
+  for (NSUInteger i = count &ndash; 1; i > 0; &mdash;i) {</p>
+
+<pre><code>  [mutableArray exchangeObjectAtIndex:i withObjectAtIndex:arc4random_uniform((int32_t)(i + 1))];
+</code></pre>
+
+<p>  }
+}</p>
+
+<p>NSArray *randomArray = [NSArray arrayWithArray:mutableArray];
+```</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[iOS 应用的国际化[转]]]></title>
