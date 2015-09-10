@@ -1,19 +1,11 @@
 ---
 layout: post		
-title: "iOS 应用的国际化[转]"		
+title: "iOS 应用的国际化"		
 date: 2014-04-26 23:03:17 +0800		
 comments: true		
 categories: iOS			
 
----
 
-
-
-本文翻译至 [http://www.raywenderlich.com/64401/internationalization-tutorial-for-ios-2014](http://www.raywenderlich.com/64401/internationalization-tutorial-for-ios-2014)
-
-原作者：[Ali Hafizji](http://www.raywenderlich.com/u/ali.hafizji)
-
-译者：[@nixzhu](https://twitter.com/nixzhu)
 
 ---
 
@@ -290,4 +282,12 @@ _salesCountLabel.text = [NSString stringWithFormat:NSLocalizedString(@"Yesterday
 
 对于具体的翻译，你也许可以使用 Google 在 [http://www.google.com/translate](http://www.google.com/translate) 提供的免费翻译服务，但它的结果可能有错误。如果你能花上一点钱，那有好几个 [列在苹果公司的国际化和本地化页面底部的第三方供应商](https://developer.apple.com/internationalization/) 可以选择。不同的供应商的价格稍有差异，但基本上都少于每个单词 10 美分。
 
+---
 
+
+
+本文翻译至 [http://www.raywenderlich.com/64401/internationalization-tutorial-for-ios-2014](http://www.raywenderlich.com/64401/internationalization-tutorial-for-ios-2014)
+
+原作者：[Ali Hafizji](http://www.raywenderlich.com/u/ali.hafizji)
+
+译者：[@nixzhu](https://twitter.com/nixzhu)
