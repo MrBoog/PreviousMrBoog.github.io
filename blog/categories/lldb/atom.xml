@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: LLDB | HuanLiu's Blog]]></title>
+  <link href="http://MrBoog.github.io/blog/categories/lldb/atom.xml" rel="self"/>
+  <link href="http://MrBoog.github.io/"/>
+  <updated>2015-09-10T14:21:32+08:00</updated>
+  <id>http://MrBoog.github.io/</id>
+  <author>
+    <name><![CDATA[HuanLiu]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[LLDB以及扩展插件chisel浅析]]></title>
+    <link href="http://MrBoog.github.io/blog/2014/04/17/lldb/"/>
+    <updated>2014-04-17T23:36:03+08:00</updated>
+    <id>http://MrBoog.github.io/blog/2014/04/17/lldb</id>
+    <content type="html"><![CDATA[<p>苹果的开源项目<a href="http://llvm.org/releases/download.html">LLVM</a>，改变了编译器市场，也为行业做出了突出贡献。据苹果所说，这项技术使得苹果平台，反映速度更快更加安全。对于开发者，苹果也带来了新的调试工具:LLDB。</p>
+
+<p>我们在开发中经常要调试程序。调试的时候，熟练使用断点加LLDB命令配合，的确能提高工作的效率。</p>
+
+<p>Xcode的编译器，已经从GCC转到<a href="http://clang.llvm.org/">Clang</a>。调试工具也由gdb转为lldb。这篇文章可以看到他们的命令区别：<a href="http://lldb.llvm.org/lldb-gdb.html">http://lldb.llvm.org/lldb-gdb.html</a>。</p>
+
+<p>学习lldb的过程，是不断积累的过程。建议多使用help命令，来查看命令的详细说明。    <br/>
+如：<code>p(expr)、po(expr -o)、bt、br、image、process、thread</code>等等。</p>
+
+<p>有时候，命令使用不对，会遇到一些错误。例如下面所示：</p>
+
+<pre><code>(lldb) p [self.view frame]          
+error: 'frame' has unknown return type; cast the call to its declared return type
+error: 1 errors parsing expression      
+(lldb) p [[self.view subviews] count]
+error: no known method '-count'; cast the message send to the method's return type
+error: 1 errors parsing expression
+</code></pre>
+
+<p>这时候，就要根据error的提示信息，检查命令的格式了。对于上面的错误，我们就显示声明一下‘frame’的类型，做如下调整：</p>
+
+<pre><code>(lldb) p (CGRect)[self.view frame]          
+(CGRect) $0 = origin=(x=0, y=0) size=(width=320, height=568)        
+(lldb) p (int)[[self.view subviews] count]  
+(int) $0 = 3
+</code></pre>
+
+<hr />
+
+<h1>chisel</h1>
+
+<p>Facebook 团队编写了一份基于LLDB的扩展插件<a href="https://github.com/facebook/chisel#custom-commands">Chisel</a>，并且开源了。我们一起来配置一下吧。         <br/>
+安装的话，很简单。就利用homebrew来安装chisel即可。</p>
+
+<pre><code>brew install chisel
+</code></pre>
+
+<p>安装显示如下：
+<img src="../images/image_source/chisel_2.jpeg" alt="" /></p>
+
+<p>根据警告提示，需要把标注的部分文字加到~/.lldbinit文件里面:</p>
+
+<pre><code>//可以cd ~ , ls -l查看一下是否有 .lldbinit
+
+vim ~/.lldbinit
+//将下面的文字加进去。
+command script import /usr/local/Cellar/chisel/1.0.0/libexec/fblldb.py
+然后:wq保存一下
+</code></pre>
+
+<p>这样就ok啦。</p>
+
+<p>如果你奇怪为什么要修改.lldbinit，可以去官网搜一下，关于这个文件的介绍：<a href="http://lldb.llvm.org/tutorial.html">http://lldb.llvm.org/tutorial.html</a>，查找关键字lldbinit即可。</p>
+
+<p>利用help命令，查看chisel所支持的命令。也可以利用help查看具体的某条命令的详细说明。</p>
+
+<p>例如：有时候，我们想查看一下视图的位置，但很多视图摞在一起，背景色又一样，不好区分。我们在lldb命令模式下输入 help border看一下。这时，会有如下输出：</p>
+
+<pre><code>(lldb) help border
+Draws a border around &lt;viewOrLayer&gt;. Color and width can be optionally provided.
+
+Arguments:
+  &lt;viewOrLayer&gt;; Type: UIView/CALayer *; The view/layer to border.
+
+Options:
+  --color/-c &lt;color&gt;; Type: string; A color name such as 'red', 'green', 'magenta', etc.
+  --width/-w &lt;width&gt;; Type: CGFloat; Desired width of border.
+
+Syntax: border [--color=color] [--width=width] &lt;viewOrLayer&gt;
+</code></pre>
+
+<p>如上面所说Draws a border around view。border命令可以动态改变 指定的view或者Layer边框颜色和宽度。只要输入指定参数即可。在某个viewController下面，可以尝试输入：</p>
+
+<pre><code>border -c red [self view]
+</code></pre>
+
+<p>这样接着运行，当前的view边框的颜色就会变为红色了。可以很清晰的看清view的边界。很给力吧，这样省去了模糊不清的颜色混合层。当然，界面复杂的话，我们也可以借助工具reveal来查看。别的不在举例了，我们可以直接借助help命令来了解。如 help pviews等等。
+这里有一个表格</p>
+
+<p><img src="../images/image_source/chisel_1.jpeg" alt="" /></p>
+]]></content>
+  </entry>
+  
+</feed>
