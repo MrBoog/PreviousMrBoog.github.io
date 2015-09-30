@@ -1,0 +1,79 @@
+---
+layout: post
+title: "MacOS下配置php环境测试推送"
+date: 2014-03-30 16:29:11 +0800
+comments: true
+categories: iOS
+
+---
+
+### 首先在Mac下配置php环境
+
+在iOS开发中，有时候我们经常要测试APNS推送的部分，我们可以本地自己搭建推送的环境，这样自己测试起来也能提高效率。目前有很多类似的开源项目，比如[pushmebaby](https://github.com/stefanhafeneger/PushMeBaby),[APNS-Pusher](https://github.com/blommegard/APNS-Pusher)。本文适合喜欢自己在本地折腾的同学。
+
+##### 启动Mac的Apache服务。
+1. 如果您还是10.7的用户，只需要在`系统偏好设置-->共享`中勾选`web共享`即可:
+![](../images/image_source/apns_1.png)  
+![](../images/image_source/apns_3.png)  
+浏览器中输入`localhost/~[用户名]`，就可以直接访问`/Users/[用户名]/Sites` 目录.
+
+2. 对于10.8或10.9的用户运行apache服务，需要通过terminal手动开启, 输入下述命令开启服务  
+`sudo apachectl start`    
+这样就可以了，浏览器中输入:"localhost",应该能看到"It works"的字样.   
+![](../images/image_source/apns_5.png)   
+cd /,到根目录下，在根目录的Library/WebServer/Documents/里面就是我们访问的地方.
+ 
+ 
+##### 开启PHP服务
+1. 在终端中运行`sudo vi /etc/apache2/httpd.conf`，打开Apache的配置文件。
+2. 找到“#LoadModule php5_module libexec/apache2/libphp5.so”，把前面的#号去掉。然后:wq保存。
+3. 运行`sudo apachectl restart`，重启Apache。ok，到这里PHP就可以用了。
+4. 运行`cp /Library/WebServer/Documents/index.html.en /Library/WebServer/Documents/info.php`。即在Apache的根目录下复制index.html.en文件并重命名为info.php。
+5. 在终端中运行`vi /Library/WebServer/Document/info.php`，这样就可以在vi中编辑info.php文件了。在“It’s works!”后面加上“<?php phpinfo(); ?>”，然后保存之。这样就可以在`http://localhost/info.php`，中看到有关PHP的信息，比如版本号是5.3.26。  
+![](../images/image_source/apns_6.png)
+
+##### php推送
+
+上述部分都完成后，就可以写php，来实现推送功能了。相关php代码可到[这里](https://github.com/MrBoog/push)去下载。将push文件夹放置于Library/WebServer/Documents/目录下，访问`http://localhost/push/apns_form.php`，测试的时候替换Library/WebServer/Documents/push/目录下的证书apns_dev.pem与apns_pro.pem即可。   
+![](../images/image_source/apns_7.png)     
+
+---
+
+由于10.7之后，系统没有自带用户级的web目录~/Sites，我们目前的操作都是在系统级的根目录下进行的：
+
+/Library/WebServer/Documents/
+
+当然我们也可以在
+
+/Users/mac/Sites
+
+目录下建立用户级的Sites，命令如下：
+
+	 sudo mkdir ~/Sites
+
+检查下面这个文件夹下面，有没有 “username”.conf文件，我的名字是mac，
+
+![](../images/image_source/apns_8.png)   
+
+如果没有的话就创建一个，
+
+	 sudo vi /etc/apache2/users/"username".conf
+
+用vi打开后，将下面这里username替换成自己的，并复制进去，然后:wq保存。
+
+
+	 <Directory "/Users/'username'/Sites/">   
+	 Options Indexes MultiViews  
+	 AllowOverride All  
+	 Order allow,deny  
+	 Allow from all    
+	 </Directory>
+
+保存后分配相应权限，然后重启Apache。
+
+	 sudo chmod 755 /etc/apache2/users/你的用户名.conf  
+	 sudo apachectl restart
+ 
+到此，访问`http://localhost/~'username'`试试看，我们也可以访问用户级站点了。
+ 
+
