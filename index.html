@@ -9,9 +9,8 @@
   <meta name="author" content="HuanLiu">
 
   
-  <meta name="description" content="生成随机数 arc4random(void)//不够平衡
-推荐 arc4random_uniform(u_int32_t) 生成 [0 , n )，之间的随机数： 1
-NSUInteger foo = arc4random_uniform(n); 生成 [minimum , maximum]， &hellip;">
+  <meta name="description" content="NSOperation 是 abstract class 抽象类，不能直接使用，我们使用的时候，一般要子类化，或者直接使用系统提供的两个子类： NSInvocationOperation
+NSBlockOperation 虽然GCD使用起来很方便，但使用不当也会暴露一些问题， &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -31,26 +30,6 @@ NSUInteger foo = arc4random_uniform(n); 生成 [minimum , maximum]， &hellip;">
   <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
 <link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
 <link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
-<script type="text/javascript">
-
-function addBlankTargetForLinks () {
-
-  $('a[href^="http"]').each(function(){
-
-      $(this).attr('target', '_blank');
-
-  });
-
-}
-
-$(document).bind('DOMNodeInserted', function(event) {
-
-  addBlankTargetForLinks();
-
-});
-
-</script>
-<link href='http://fonts.googleapis.com/css?family=Sofadi+One' rel='stylesheet' type='text/css'>
 
   
 
@@ -87,6 +66,296 @@ $(document).bind('DOMNodeInserted', function(event) {
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2015/09/30/guan-yu-nsoperation/">关于NSOperation</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2015-09-30T17:56:07+08:00" pubdate data-updated="true">Sep 30<span>th</span>, 2015</time>
+        
+           | <a href="/blog/2015/09/30/guan-yu-nsoperation/#disqus_thread"
+             data-disqus-identifier="http://MrBoog.github.io/blog/2015/09/30/guan-yu-nsoperation/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>NSOperation 是 abstract class 抽象类，不能直接使用，我们使用的时候，一般要子类化，或者直接使用系统提供的两个子类：</p>
+
+<ul>
+<li>NSInvocationOperation</li>
+<li>NSBlockOperation</li>
+</ul>
+
+
+<p>虽然GCD使用起来很方便，但使用不当也会暴露一些问题，比如对任务状态的不好控制等。这可能导致有些我们本来需要取消掉的任务，一直在运行，占用资源。这些情况下我们可以考虑通过 NSOperationQueue 加强对任务的控制。</p>
+
+<hr />
+
+<h4>NSInvocationOperation</h4>
+
+<p>NSInvocationOperation是抽象类NSOperation的实体子类，可以直接使用。如果不结合NSOperationQueue，单独通过调用 start方法使用，NSInvocationOperation是非并发的操作。例如：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>
+</span><span class='line'>    // 通过 start 直接调用，任务将在主线程中执行。
+</span><span class='line'>    NSInvocationOperation *invocationOp = [[NSInvocationOperation alloc] initWithTarget:self selector:@selector(doSomeThingWithInvocation:) object:nil];
+</span><span class='line'>    [invocationOp start];
+</span><span class='line'>
+</span><span class='line'>  // 或者通过 addOperation 将任务加入队列，可在子线程中执行
+</span><span class='line'>  myOperationQueue = [[NSOperationQueue alloc] init];
+</span><span class='line'>  [myOperationQueue addOperation:invocationOp];
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>当然，在swift中,NSInvocation相关的类，都已经去掉了(不知道以后会不会加入)，也许NSInvocationOperation也是退出历史舞台的节奏。</p>
+
+<hr />
+
+<h4>NSBlockOperation</h4>
+
+<p>NSBlockOperation也是NSOperation的子类，只是跟NSInvocationOperation使用NSInvocation不同，NSBlockOperation使用block，使用起来会更方便。</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>
+</span><span class='line'>  myOperationQueue = [[NSOperationQueue alloc] init];        
+</span><span class='line'>  NSBlockOperation *blockOp = [NSBlockOperation blockOperationWithBlock:^{
+</span><span class='line'>        //需要执行的任务
+</span><span class='line'>    }];
+</span><span class='line'>    
+</span><span class='line'>    [blockOp addExecutionBlock:^{
+</span><span class='line'>        //需要执行的任务
+</span><span class='line'>    }];
+</span><span class='line'>    
+</span><span class='line'>    // finished属性为YES后(完成或者被取消)将会执行
+</span><span class='line'>    __weak NSBlockOperation *weakOp = blockOp;
+</span><span class='line'>    [blockOp setCompletionBlock:^{
+</span><span class='line'>      
+</span><span class='line'>      if (!weakOp.isCancelled) {
+</span><span class='line'>      
+</span><span class='line'>          [[NSOperationQueue mainQueue] addOperationWithBlock:^{
+</span><span class='line'>              //更新主线程
+</span><span class='line'>          }];         
+</span><span class='line'>      }
+</span><span class='line'>    }];
+</span><span class='line'>
+</span><span class='line'>  [myOperationQueue addOperation:blockOp];</span></code></pre></td></tr></table></div></figure>
+
+
+<p>上面代码，block相互之间都是并行异步的。也就是说可以同时执行多个block，不同block之间不会相互阻塞。不用等待依赖其他block完成。block内部是顺序执行的。</p>
+
+<p>通过添加依赖，来控制不同的NSBlockOperation之间是否完全并行执行。注意不要循环依赖导致死锁。</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>
+</span><span class='line'>  NSBlockOperation *blockOp2 = [NSBlockOperation blockOperationWithBlock:^{
+</span><span class='line'>      //需要执行的任务
+</span><span class='line'>    }];
+</span><span class='line'>    
+</span><span class='line'>    //blockOp2 将等待至 blockOp 结束后，开始执行
+</span><span class='line'>    [blockOp2 addDependency:blockOp];
+</span><span class='line'>  [myOperationQueue addOperation:blockOp2];
+</span><span class='line'>  
+</span></code></pre></td></tr></table></div></figure>
+
+
+<hr />
+
+<h4>子类化自定义NSOperation</h4>
+
+<p>我们可以选择重写 <code>main</code> 方法，或者 <code>start</code> 方法，来实现。</p>
+
+<ul>
+<li>main：重写main方法，不需要手动管理太多状态，使用起来比较简单。</li>
+</ul>
+
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>
+</span><span class='line'>  - (void)main {
+</span><span class='line'>      @autoreleasepool {
+</span><span class='line'>
+</span><span class='line'>          //在这里，我们要频繁的检测 isCancelled 属性
+</span><span class='line'>          if(self.isCancelled){
+</span><span class='line'>              return;
+</span><span class='line'>          }
+</span><span class='line'>      }
+</span><span class='line'>  }
+</span><span class='line'> </span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li><p>start：我们一般不会重写start，相对于重写main方法，处理上要更复杂些。要自己注意任务的一些状态比如isExecuting，isFinished，isConcurrent(isAsynchronous)，isReady。注意，当实现了start，就不会执行main。</p></li>
+<li><p>dependency：任务之间添加依赖。有时候某一个任务，需要等待其他任务的结束后才能开始。这时候，相对于使用GCD的dispatch_barrier_async更容易理解一些。</p></li>
+</ul>
+
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>
+</span><span class='line'>  //在op2的任务尚未执行时，添加依赖，op2将等待直到op完成
+</span><span class='line'>  [op2 addDependency:op];
+</span><span class='line'>  //移出op2的依赖
+</span><span class='line'>  [op2 removeDependency:op];
+</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li>Completion block：任务完成后的回调，要注意此时并没有回到主线程。</li>
+</ul>
+
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>
+</span><span class='line'>    __weak NSBlockOperation *weakOp = blockOp;
+</span><span class='line'>    [blockOp setCompletionBlock:^{
+</span><span class='line'>        
+</span><span class='line'>        if ( !weakOp.isCancelled ) {
+</span><span class='line'>            [[NSOperationQueue mainQueue] addOperationWithBlock:^{
+</span><span class='line'>
+</span><span class='line'>            }];
+</span><span class='line'>        }
+</span><span class='line'>    }];</span></code></pre></td></tr></table></div></figure>
+
+
+<p>另外有几点需要注意：</p>
+
+<ul>
+<li><p>已经完成的任务，不能被重新执行。</p></li>
+<li><p>已经添加到队列的任务，也不能被重复添加。</p></li>
+<li><p>当我们对一个任务发送<code>cancel</code>消息时，属性isCancelled会变为YES。    不过，对于自定义的NSOperation来说，要格外注意些。</p>
+
+<p>  在发送cancel消息的时候，如果任务还未开始执行(isExecuting == NO)，就会被 finished 并 从队列中 remove 。</p>
+
+<p>  如果任务正在执行中，这时候任务不会被强制结束。所以这时候，我们要在main方法中，手动检测(isCancelled == YES)并处理。</p></li>
+<li>isFinished等于YES，不代表任务成功完成。也可能任务被取消。所以有时候，我们在Completion block回调中，需要判断任务是否被取消。</li>
+</ul>
+
+
+<hr />
+
+<h4>NSOperationQueue</h4>
+
+<p>我们有两种不同的队列，主队列和自定义队列。主队列在主线程运行，自定义会开启子线程。</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>
+</span><span class='line'>  NSOperationQueue *mainQueue = [NSOperationQueue mainQueue];  
+</span><span class='line'>  NSOperationQueue *queue = [[NSOperationQueue alloc] init]; </span></code></pre></td></tr></table></div></figure>
+
+
+<p>使用NSOperationQueue  的时候，系统默认会根据当前资源使用的情况，来为我们考虑最合适的线程数。当然我们也可以手动设置<code>maxConcurrentOperationCount</code>，限制使用的最大的线程数。更多的时候，其实我们不关心，交给系统处理就好。</p>
+
+<ul>
+<li><p>name：一般我们使用队列的时候，都要给一个队列名字，方便我们维护debug。</p></li>
+<li><p>suspended：用来暂停和恢复队列中的所有任务。不能单独针对队列中的某一个任务。</p></li>
+</ul>
+
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>
+</span><span class='line'>// Suspend
+</span><span class='line'>[myOperationQueue setSuspended:YES];
+</span><span class='line'>... 
+</span><span class='line'>// Resume
+</span><span class='line'>[myOperationQueue setSuspended:NO];   </span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li>operationCount (readonly)：获取队列中还存在的正在执行的、等待执行的任务数量。注意，当任务一旦finished，就会从队列中remove。</li>
+<li>cancelAllOperations：对队列所有的operations，发送<code>cancel</code>消息，将 isCancelled 属性设置为 YES 。如我们之前讨论过的，当operation 的 isExecuting 状态为 NO 时，operation 会被 finished 并从队列中 remove 。如果 isExecuting 状态为 YES ，那么我们自定义的operation，就要手动检测 isCancelled 属性。</li>
+</ul>
+
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -904,6 +1173,121 @@ cd /,到根目录下，在根目录的Library/WebServer/Documents/里面就是�
 
     </article>
   
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2014/03/30/push/">MacOS下配置php环境测试推送</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-03-30T16:29:11+08:00" pubdate data-updated="true">Mar 30<span>th</span>, 2014</time>
+        
+           | <a href="/blog/2014/03/30/push/#disqus_thread"
+             data-disqus-identifier="http://MrBoog.github.io/blog/2014/03/30/push/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h3>首先在Mac下配置php环境</h3>
+
+<p>在iOS开发中，有时候我们经常要测试APNS推送的部分，我们可以本地自己搭建推送的环境，这样自己测试起来也能提高效率。目前有很多类似的开源项目，比如<a href="https://github.com/stefanhafeneger/PushMeBaby">pushmebaby</a>,<a href="https://github.com/blommegard/APNS-Pusher">APNS-Pusher</a>。本文适合喜欢自己在本地折腾的同学。</p>
+
+<h5>启动Mac的Apache服务。</h5>
+
+<ol>
+<li><p>如果您还是10.7的用户，只需要在<code>系统偏好设置--&gt;共享</code>中勾选<code>web共享</code>即可:
+<img src="../images/image_source/apns_1.png" alt="" /><br/>
+<img src="../images/image_source/apns_3.png" alt="" /><br/>
+浏览器中输入<code>localhost/~[用户名]</code>，就可以直接访问<code>/Users/[用户名]/Sites</code> 目录.</p></li>
+<li><p>对于10.8或10.9的用户运行apache服务，需要通过terminal手动开启, 输入下述命令开启服务<br/>
+<code>sudo apachectl start</code>  <br/>
+这样就可以了，浏览器中输入:&ldquo;localhost&rdquo;,应该能看到&#8221;It works&#8221;的字样. <br/>
+<img src="../images/image_source/apns_5.png" alt="" /> <br/>
+cd /,到根目录下，在根目录的Library/WebServer/Documents/里面就是我们访问的地方.</p></li>
+</ol>
+
+
+<h5>开启PHP服务</h5>
+
+<ol>
+<li>在终端中运行<code>sudo vi /etc/apache2/httpd.conf</code>，打开Apache的配置文件。</li>
+<li>找到“#LoadModule php5_module libexec/apache2/libphp5.so”，把前面的#号去掉。然后:wq保存。</li>
+<li>运行<code>sudo apachectl restart</code>，重启Apache。ok，到这里PHP就可以用了。</li>
+<li>运行<code>cp /Library/WebServer/Documents/index.html.en /Library/WebServer/Documents/info.php</code>。即在Apache的根目录下复制index.html.en文件并重命名为info.php。</li>
+<li>在终端中运行<code>vi /Library/WebServer/Document/info.php</code>，这样就可以在vi中编辑info.php文件了。在“It’s works!”后面加上“&lt;?php phpinfo(); ?>”，然后保存之。这样就可以在<code>http://localhost/info.php</code>，中看到有关PHP的信息，比如版本号是5.3.26。<br/>
+<img src="../images/image_source/apns_6.png" alt="" /></li>
+</ol>
+
+
+<h5>php推送</h5>
+
+<p>上述部分都完成后，就可以写php，来实现推送功能了。相关php代码可到<a href="https://github.com/MrBoog/push">这里</a>去下载。将push文件夹放置于Library/WebServer/Documents/目录下，访问<code>http://localhost/push/apns_form.php</code>，测试的时候替换Library/WebServer/Documents/push/目录下的证书apns_dev.pem与apns_pro.pem即可。 <br/>
+<img src="../images/image_source/apns_7.png" alt="" /></p>
+
+<hr />
+
+<p>由于10.7之后，系统没有自带用户级的web目录~/Sites，我们目前的操作都是在系统级的根目录下进行的：</p>
+
+<p>/Library/WebServer/Documents/</p>
+
+<p>当然我们也可以在</p>
+
+<p>/Users/mac/Sites</p>
+
+<p>目录下建立用户级的Sites，命令如下：</p>
+
+<pre><code> sudo mkdir ~/Sites
+</code></pre>
+
+<p>检查下面这个文件夹下面，有没有 “username”.conf文件，我的名字是mac，</p>
+
+<p><img src="../images/image_source/apns_8.png" alt="" /></p>
+
+<p>如果没有的话就创建一个，</p>
+
+<pre><code> sudo vi /etc/apache2/users/"username".conf
+</code></pre>
+
+<p>用vi打开后，将下面这里username替换成自己的，并复制进去，然后:wq保存。</p>
+
+<pre><code> &lt;Directory "/Users/'username'/Sites/"&gt;   
+ Options Indexes MultiViews  
+ AllowOverride All  
+ Order allow,deny  
+ Allow from all    
+ &lt;/Directory&gt;
+</code></pre>
+
+<p>保存后分配相应权限，然后重启Apache。</p>
+
+<pre><code> sudo chmod 755 /etc/apache2/users/你的用户名.conf  
+ sudo apachectl restart
+</code></pre>
+
+<p>到此，访问<code>http://localhost/~'username'</code>试试看，我们也可以访问用户级站点了。</p>
+</div>
+  
+  
+
+
+    </article>
+  
   <div class="pagination">
     
     <a href="/blog/archives">Blog Archives</a>
@@ -915,6 +1299,10 @@ cd /,到根目录下，在根目录的Library/WebServer/Documents/里面就是�
     <section>
   <h1>Recent Posts</h1>
   <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2015/09/30/guan-yu-nsoperation/">关于NSOperation</a>
+      </li>
     
       <li class="post">
         <a href="/blog/2014/06/09/random-in-ios/">Random in iOS</a>
@@ -930,10 +1318,6 @@ cd /,到根目录下，在根目录的Library/WebServer/Documents/里面就是�
     
       <li class="post">
         <a href="/blog/2014/04/13/objective-czhong-de-at/">Objective-c中的&#8217;@&#8217;</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2014/03/30/test-again/">MacOS下配置php环境测试推送</a>
       </li>
     
   </ul>
