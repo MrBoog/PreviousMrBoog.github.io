@@ -9,8 +9,8 @@
   <meta name="author" content="HuanLiu">
 
   
-  <meta name="description" content="NSOperation 是 abstract class 抽象类，不能直接使用，我们使用的时候，一般要子类化，或者直接使用系统提供的两个子类： NSInvocationOperation
-NSBlockOperation 虽然GCD使用起来很方便，但使用不当也会暴露一些问题， &hellip;">
+  <meta name="description" content="先看一下GCD中的常见的术语 描述多个任务之间的执行关系： serial（串行） 某一时刻，只执行一个任务
+concurrent（并行） 可以同时执行多个任务 描述一个函数的执行完成对其他任务的影响 (某个人物是否需要等待其他函数完成)： synchronous（同步） 任务执行完成后reture &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -66,6 +66,276 @@ NSBlockOperation 虽然GCD使用起来很方便，但使用不当也会暴露一
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2015/12/14/gcd-part-1/">GCD Part 1</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2015-12-14T15:25:27+08:00" pubdate data-updated="true">Dec 14<span>th</span>, 2015</time>
+        
+           | <a href="/blog/2015/12/14/gcd-part-1/#disqus_thread"
+             data-disqus-identifier="http://MrBoog.github.io/blog/2015/12/14/gcd-part-1/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>先看一下GCD中的常见的术语</p>
+
+<p>描述多个任务之间的执行关系：</p>
+
+<ul>
+<li>serial（串行） 某一时刻，只执行一个任务</li>
+<li>concurrent（并行） 可以同时执行多个任务</li>
+</ul>
+
+
+<p>描述一个函数的执行完成对其他任务的影响 (某个人物是否需要等待其他函数完成)：</p>
+
+<ul>
+<li>synchronous（同步） 任务执行完成后reture，（阻塞）</li>
+<li>asynchronous（异步） 不等待任务执行完成，立即reture，（不阻塞当前）</li>
+</ul>
+
+
+<hr />
+
+<h3>Serial Queues</h3>
+
+<p>在串行队列里，同一时间只能执行一个任务。任务按照被添加进入队列的顺序依次执行。每一个任务只有在前面的任务完成后，才可以开始执行。</p>
+
+<p>系统为我们提供的串行队列</p>
+
+<ul>
+<li><p>main queue ( dispatch_get_main_queue )</p>
+
+<p>  main queue是一个串行队列，有串行队列的一切特性。比较特殊的一点是加入这个队列的任务，都是在主线程执行的。</p></li>
+</ul>
+
+
+<h3>Concurrent Queues</h3>
+
+<p>加入并行队列的任务，执行的顺序也是按照任务被加入队列的顺序执行，这是我们唯一可以保证的。每个任务都不用等待之前的任务完成，同一时刻可以多个任务同时执行。</p>
+
+<p>系统同样有一个全局的并发队列</p>
+
+<ul>
+<li><p>global dispatch queue ( dispatch_get_global_queue )</p>
+
+<p>  这是另一个我们熟悉的并发队列，很多时候我们直接使用这个队列，可以简单处理一些我们需要并发执行的任务。</p></li>
+</ul>
+
+
+<h3>Custom Queue</h3>
+
+<p>除了系统提供的全局队列之外，我们还可以自定义串行或者并行的队列。</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>
+</span><span class='line'>  dispatch_queue_t mySerialQueue = dispatch_queue_create("com.mySerialQueue", DISPATCH_QUEUE_SERIAL);
+</span><span class='line'>
+</span><span class='line'>    dispatch_queue_t myConcurrentQueue = dispatch_queue_create("com.myConcurrentQueue", DISPATCH_QUEUE_CONCURRENT);
+</span><span class='line'>    </span></code></pre></td></tr></table></div></figure>
+
+
+<p>使用GCD，首先要关注的点就是，我们要执行的代码是同步还是异步执行，以及选择正确的合适的 dispatch queue。</p>
+
+<!--
+同步执行 串行queue 
+        并行queue
+
+异步执行 串行queue 
+        并行queue
+-->
+
+
+<hr />
+
+<h3>dispatch_async  异步执行</h3>
+
+<p>dispatch_async 用来用异步的方式执行串行或者并行队列，我们来看一下使用 dispatch_async 的几种常见情况：</p>
+
+<ul>
+<li>custom Serial Queue：当我们需要执行几个应该串行执行的任务，又不阻塞当前的时候。</li>
+</ul>
+
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>// task1 task2 顺序依次执行，同时不阻塞others
+</span><span class='line'>
+</span><span class='line'>dispatch_queue_t mySerialQueue = dispatch_queue_create("com.mySerialQueue", NULL);
+</span><span class='line'>
+</span><span class='line'>dispatch_async(mySerialQueue, ^{
+</span><span class='line'>   ...task1
+</span><span class='line'>});
+</span><span class='line'>
+</span><span class='line'>dispatch_async(mySerialQueue, ^{
+</span><span class='line'>  ...task2
+</span><span class='line'>});
+</span><span class='line'>
+</span><span class='line'>...others
+</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li><p>main Queue：当我们执行并完成了一段异步的任务，需要回到主线程更新UI的时候，很常见的选择就是使用GCD的 main queue。</p></li>
+<li><p>custom or global concurrent Queue：这个是我们执行非UI任务的常见选择。要注意的是，加入队列的多个任务之间并发执行，我们无法知道那个任务先完成。</p></li>
+</ul>
+
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>
+</span><span class='line'>dispatch_queue_t myConcurrentQueue = dispatch_queue_create("com.myConcurrentQueue", DISPATCH_QUEUE_CONCURRENT);
+</span><span class='line'>
+</span><span class='line'>dispatch_async(myConcurrentQueue, ^{
+</span><span class='line'>  
+</span><span class='line'>  ...task1    
+</span><span class='line'>    dispatch_async(dispatch_get_main_queue(), ^{
+</span><span class='line'>          Update UI 
+</span><span class='line'>    });
+</span><span class='line'>});
+</span></code></pre></td></tr></table></div></figure>
+
+
+<hr />
+
+<h3>dispatch_sync 同步执行</h3>
+
+<p>大部分时候我们执行dispatch_sync操作，都要格外小心些。</p>
+
+<ul>
+<li>custom or main Serial Queue： 同步执行串行队列时，要注意防止发生死锁，比如下面的代码:</li>
+</ul>
+
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>//串行队列中，task2 等待 task1完成，所以不会开始。而task1又完成不了，因为task2还没有执行完(甚至都没有开始)。死锁。
+</span><span class='line'>  
+</span><span class='line'>    dispatch_queue_t mySerialQueue = dispatch_queue_create("com.mySerialQueue", DISPATCH_QUEUE_SERIAL);
+</span><span class='line'>    
+</span><span class='line'>    dispatch_sync(mySerialQueue, ^{
+</span><span class='line'>        
+</span><span class='line'>        ...task1
+</span><span class='line'>        dispatch_sync(mySerialQueue, ^{
+</span><span class='line'>           
+</span><span class='line'>           ...task2            
+</span><span class='line'>        });
+</span><span class='line'>    });
+</span><span class='line'>    
+</span><span class='line'>    </span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li>concurrent Queue：合理使用可以解决一些并发读写问题。例如</li>
+</ul>
+
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>//task1 执行结束后，task2才会开始执行。
+</span><span class='line'>    dispatch_queue_t myConcurrentQueue = dispatch_queue_create("com.myConcurrentQueue", DISPATCH_QUEUE_CONCURRENT);
+</span><span class='line'>
+</span><span class='line'>    dispatch_sync(myConcurrentQueue, ^{
+</span><span class='line'>        
+</span><span class='line'>      ...task1 读
+</span><span class='line'>    });
+</span><span class='line'>    
+</span><span class='line'>    dispatch_async(myConcurrentQueue, ^{
+</span><span class='line'>        
+</span><span class='line'>      ...task2 写
+</span><span class='line'>    });</span></code></pre></td></tr></table></div></figure>
+
+
+<hr />
+
+<h3>dispatch_after</h3>
+
+<p>实际上 dispatch_after 就像一个延迟执行的 dispatch_async。</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>double delayInSeconds = 1.0;
+</span><span class='line'>dispatch_time_t popTime = dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delayInSeconds * NSEC_PER_SEC));
+</span><span class='line'> dispatch_after(popTime, dispatch_get_main_queue(), ^(void){
+</span><span class='line'>
+</span><span class='line'>});
+</span></code></pre></td></tr></table></div></figure>
+
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -1186,6 +1456,10 @@ cd /,到根目录下，在根目录的Library/WebServer/Documents/里面就是�
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2015/12/14/gcd-part-1/">GCD Part 1</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2015/09/30/guan-yu-nsoperation/">关于NSOperation</a>
       </li>
     
@@ -1199,10 +1473,6 @@ cd /,到根目录下，在根目录的Library/WebServer/Documents/里面就是�
     
       <li class="post">
         <a href="/blog/2014/04/17/lldb/">LLDB以及扩展插件chisel浅析</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2014/04/13/objective-czhong-de-at/">Objective-c中的&#8217;@&#8217;</a>
       </li>
     
   </ul>
