@@ -5,12 +5,12 @@
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <title>GCD Part 1 - HuanLiu's Blog</title>
+  <title>GCD 同步与异步 串行与并行 - HuanLiu's Blog</title>
   <meta name="author" content="HuanLiu">
 
   
-  <meta name="description" content="先看一下GCD中的常见的术语 描述多个任务之间的执行关系： serial（串行） 某一时刻，只执行一个任务
-concurrent（并行） 可以同时执行多个任务 描述一个函数的执行完成对其他任务的影响 (某个人物是否需要等待其他函数完成)： synchronous（同步） 任务执行完成后reture &hellip;">
+  <meta name="description" content="先看一下GCD中的常见的术语 描述多个任务之间同一时刻的运行关系： serial（串行） 某一时刻，只执行一个任务
+concurrent（并行） 可以同时执行多个任务 侧重描述一个函数的执行完成，对其他任务的影响 (既 是否任务在等待某个函数完成，然后才可以运行)： synchronous（同步 &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -69,7 +69,7 @@ concurrent（并行） 可以同时执行多个任务 描述一个函数的执�
   
   <header>
     
-      <h1 class="entry-title">GCD Part 1</h1>
+      <h1 class="entry-title">GCD 同步与异步 串行与并行</h1>
     
     
       <p class="meta">
@@ -97,7 +97,7 @@ concurrent（并行） 可以同时执行多个任务 描述一个函数的执�
 
 <div class="entry-content"><p>先看一下GCD中的常见的术语</p>
 
-<p>描述多个任务之间的执行关系：</p>
+<p>描述多个任务之间同一时刻的运行关系：</p>
 
 <ul>
 <li>serial（串行） 某一时刻，只执行一个任务</li>
@@ -105,13 +105,18 @@ concurrent（并行） 可以同时执行多个任务 描述一个函数的执�
 </ul>
 
 
-<p>描述一个函数的执行完成对其他任务的影响 (某个人物是否需要等待其他函数完成)：</p>
+<p>侧重描述一个函数的执行完成，对其他任务的影响 (既 是否任务在等待某个函数完成，然后才可以运行)：</p>
 
 <ul>
 <li>synchronous（同步） 任务执行完成后reture，（阻塞）</li>
 <li>asynchronous（异步） 不等待任务执行完成，立即reture，（不阻塞当前）</li>
 </ul>
 
+
+<p>在GCD中，我们用串行并行描述队列。这就是在描述，该队列里面的所有任务，相互之间在同一时刻，是怎样的运行关系。是指队列内本身的任务运行顺序。      <br/>
+我们还用同步异步，描述某一个任务。比如说任务A是同步执行的。这就是在说，A任务，会阻塞当前任务，直到A结束。这是指不同任务之间的关系，与队列无关，可以是不同队列，也可以是相同队列。</p>
+
+<p>接下来，我们先来看下，GCD里面的不同队列。</p>
 
 <hr />
 
@@ -157,7 +162,9 @@ concurrent（并行） 可以同时执行多个任务 描述一个函数的执�
 </span><span class='line'>    </span></code></pre></td></tr></table></div></figure>
 
 
-<p>使用GCD，首先要关注的点就是，我们要执行的代码是同步还是异步执行，以及选择正确的合适的 dispatch queue。</p>
+<p>上面是几种我们用GCD时，需要使用到的队列。</p>
+
+<p>另外，使用GCD，除了选择正确的队列外，还要关注：我们要执行的任务是同步还是异步执行。</p>
 
 <!--
 同步执行 串行queue 
@@ -172,7 +179,7 @@ concurrent（并行） 可以同时执行多个任务 描述一个函数的执�
 
 <h3>dispatch_async  异步执行</h3>
 
-<p>dispatch_async 用来用异步的方式执行串行或者并行队列，我们来看一下使用 dispatch_async 的几种常见情况：</p>
+<p>dispatch_async 用来用异步的方式执行串行或者并行队列里面的任务，我们来看一下使用 dispatch_async 的几种常见情况：</p>
 
 <ul>
 <li>custom Serial Queue：当我们需要执行几个应该串行执行的任务，又不阻塞当前的时候。</li>
@@ -313,7 +320,7 @@ concurrent（并行） 可以同时执行多个任务 描述一个函数的执�
 
 <h3>dispatch_after</h3>
 
-<p>实际上 dispatch_after 就像一个延迟执行的 dispatch_async。</p>
+<p>异步延迟操作。实际上 dispatch_after 就像一个延迟执行的 dispatch_async。</p>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
@@ -394,7 +401,7 @@ concurrent（并行） 可以同时执行多个任务 描述一个函数的执�
   <ul id="recent_posts">
     
       <li class="post">
-        <a href="/blog/2015/12/14/gcd-part-1/">GCD Part 1</a>
+        <a href="/blog/2015/12/14/gcd-part-1/">GCD 同步与异步 串行与并行</a>
       </li>
     
       <li class="post">
@@ -427,7 +434,7 @@ concurrent（并行） 可以同时执行多个任务 描述一个函数的执�
     </div>
   </div>
   <footer role="contentinfo"><p>
-  Copyright &copy; 2015 - HuanLiu -
+  Copyright &copy; 2016 - HuanLiu -
   <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
 </p>
 
