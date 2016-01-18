@@ -4,7 +4,7 @@
   <title><![CDATA[HuanLiu's Blog]]></title>
   <link href="http://MrBoog.github.io/atom.xml" rel="self"/>
   <link href="http://MrBoog.github.io/"/>
-  <updated>2016-01-18T21:29:27+08:00</updated>
+  <updated>2016-01-18T21:44:54+08:00</updated>
   <id>http://MrBoog.github.io/</id>
   <author>
     <name><![CDATA[HuanLiu]]></name>
@@ -12,6 +12,256 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[GCD Barriers 与 Groups]]></title>
+    <link href="http://MrBoog.github.io/blog/2016/01/18/gcd-barriers-yu-groups/"/>
+    <updated>2016-01-18T21:41:55+08:00</updated>
+    <id>http://MrBoog.github.io/blog/2016/01/18/gcd-barriers-yu-groups</id>
+    <content type="html"><![CDATA[<h3>GCD barriers 与 groups</h3>
+
+<p>在学会简单的使用GCD处理多线程之后，我们来再深入了解下GCD对多线程的一些控制。</p>
+
+<h4>dispatch barriers</h4>
+
+<p>在使用 Concurrent Queue 的时候，有时候我们希望队列中的某项任务，能够被串行执行，来避免资源竞争等多线程问题。比如遇到读写问题，这时候我们就需要使用 dispatch barriers。来保证即使在并行队列中，对某个对象的读和写操作，在同一时刻，只有一个可以被执行。这时候就可以用到 dispatch barriers了。下面我们来讨论一下，不同的队列中barriers的使用：</p>
+
+<ul>
+<li><p>Custom Serial Queue: 在串行队列中，队列都是顺序串行执行，使用barriers没有任何好处。一般来讲我们不需要这么做。</p></li>
+<li><p>Global Concurrent Queue: 这里虽然是并行队列，但这个队列是全局的，我们不能保证别人没有使用这个队列。对这个队列加barriers，可能会影响到其他模块的功能。所以不建议在这个队列中使用。</p></li>
+<li><p>Custom Concurrent Queue: 在自定义的并行队列中使用barriers，是比较合适的方式。</p></li>
+</ul>
+
+
+<p>所以当我们要做的并行操作，可能存在线程安全问题的时候。我们最好考虑新建自定义并行队列，而不是简单地使用系统提供的 Global Queue。</p>
+
+<p>举一个例子，假设某一个类要管理MyClass这个类型的读写，下面列举这个类的一些相关方法:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>
+</span><span class='line'>  //初始化自定义并发队列
+</span><span class='line'>  - (instancetype)init{
+</span><span class='line'>      
+</span><span class='line'>      if(self = [super init]){
+</span><span class='line'>          customConcurrentQueue = dispatch_queue_create("com.customConcurrentQueue", DISPATCH_QUEUE_CONCURRENT); 
+</span><span class='line'>      }
+</span><span class='line'>  }
+</span><span class='line'>
+</span><span class='line'>  //写方法
+</span><span class='line'>  - (void)write:(MyClass *)myClass {
+</span><span class='line'>  
+</span><span class='line'>      if( myClass ){
+</span><span class='line'>          
+</span><span class='line'>          //使用barrier，保证写方法，可以串行执行
+</span><span class='line'>            dispatch_barrier_async(self.customConcurrentQueue, ^{ 
+</span><span class='line'>              
+</span><span class='line'>              //写操作
+</span><span class='line'>              ...
+</span><span class='line'>          });
+</span><span class='line'>      }
+</span><span class='line'>  }
+</span><span class='line'>
+</span><span class='line'>  //读方法
+</span><span class='line'>  - (MyClass *)read{
+</span><span class='line'>      
+</span><span class='line'>      //要保证，读和写方法不能同时执行，
+</span><span class='line'>      //首先，他们要在同一个队列中 ：self.customConcurrentQueue
+</span><span class='line'>      //其次，读方法要等待读出数据后返回，所以应该是同步操作 ：dispatch_sync
+</span><span class='line'>      
+</span><span class='line'>      __block MyClass *myClass = [[MyClass alloc] init];
+</span><span class='line'>      
+</span><span class='line'>      dispatch_sync(self.customConcurrentQueue, ^{
+</span><span class='line'>      
+</span><span class='line'>          //读操作
+</span><span class='line'>          myClass = ...
+</span><span class='line'>      });
+</span><span class='line'>      
+</span><span class='line'>      return myClass;
+</span><span class='line'>  }
+</span><span class='line'>  </span></code></pre></td></tr></table></div></figure>
+
+
+<h4>dispatch groups</h4>
+
+<p>有时候，我们需要在多个并行任务全部完成后，做一些操作，这时候就需要用到 group来管理了。</p>
+
+<p>举一个简单的例子。我有4个任务要使用并发处理，任务4要等待，任务1、2、3完成后执行。同时，任务4不阻塞当前的线程：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>- (void)testDispatchGroup{
+</span><span class='line'>
+</span><span class='line'>  dispatch_queue_t concurrentQueue = dispatch_queue_create("com.test.testConcurrent", DISPATCH_QUEUE_CONCURRENT);
+</span><span class='line'>
+</span><span class='line'>  dispatch_group_t group = dispatch_group_create();
+</span><span class='line'>
+</span><span class='line'>  //异步操作
+</span><span class='line'>  dispatch_group_async(group, concurrentQueue, ^{
+</span><span class='line'>         
+</span><span class='line'>      任务1
+</span><span class='line'>  });
+</span><span class='line'>
+</span><span class='line'>  dispatch_group_async(group, concurrentQueue, ^{
+</span><span class='line'>         
+</span><span class='line'>      任务2
+</span><span class='line'>  });
+</span><span class='line'>
+</span><span class='line'>  dispatch_group_async(group, concurrentQueue, ^{
+</span><span class='line'>         
+</span><span class='line'>      任务3
+</span><span class='line'>  });
+</span><span class='line'>
+</span><span class='line'>  //dispatch_group_notify 中的block执行的是我们最后要做的任务。同时，这里是异步操作，不会阻塞后面其他代码的执行。
+</span><span class='line'>  dispatch_group_notify(group, dispatch_get_main_queue(), ^{
+</span><span class='line'>      
+</span><span class='line'>      //前面3个任务，都执行完成后，执行里面的block
+</span><span class='line'>      任务4
+</span><span class='line'>  });
+</span><span class='line'>
+</span><span class='line'>      ...
+</span><span class='line'>}
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>再看另一个需求，还是之前的4个任务。唯一的区别是，任务4除了要等待其他任务完成，还要阻塞当前线程：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>- (void)testDispatchGroup{
+</span><span class='line'>
+</span><span class='line'>  dispatch_group_t group = dispatch_group_create();
+</span><span class='line'>
+</span><span class='line'>  //异步操作
+</span><span class='line'>  dispatch_group_async(group, concurrentQueue, ^{
+</span><span class='line'>         
+</span><span class='line'>      任务1
+</span><span class='line'>  });
+</span><span class='line'>
+</span><span class='line'>  dispatch_group_async(group, concurrentQueue, ^{
+</span><span class='line'>         
+</span><span class='line'>      任务2
+</span><span class='line'>  });
+</span><span class='line'>
+</span><span class='line'>  dispatch_group_async(group, concurrentQueue, ^{
+</span><span class='line'>         
+</span><span class='line'>      任务3
+</span><span class='line'>  });
+</span><span class='line'>  
+</span><span class='line'>  //dispatch_group_wait 等待上面任务全部完成，阻塞当前线程，直到超过设置的时间
+</span><span class='line'>  //使用时，要注意避免阻塞主线程等问题
+</span><span class='line'>  dispatch_group_wait(group, DISPATCH_TIME_FOREVER);
+</span><span class='line'>  
+</span><span class='line'>  任务4
+</span><span class='line'>  
+</span><span class='line'>  ...
+</span><span class='line'>}
+</span><span class='line'>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>另外，除了使用dispatch_group_async管理要做的任务。还可以使用<code>dispatch_group_enter</code>、 <code>dispatch_group_leave</code> 组合的方式，手动通知任务完成。如果使用手动管理的话，我们要注意：<code>enter和leave方法，应该是成对出现的</code>。</p>
+
+<p>dispatch_group_enter(customGroup) : 手动告知customGroup，表示一个任务已经开始执行。</p>
+
+<p>dispatch_group_leave(customGroup) : 手动告知customGroup，表示一个任务已经完成。当所有enter对应的leave方法都执行过后。我们的<code>dispatch_group_notify()</code>或者<code>dispatch_group_wait()</code>，就可以接到任务完成的通知。</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[GCD 同步与异步 串行与并行]]></title>

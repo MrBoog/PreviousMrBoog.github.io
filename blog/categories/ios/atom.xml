@@ -4,7 +4,7 @@
   <title><![CDATA[Category: iOS | HuanLiu's Blog]]></title>
   <link href="http://MrBoog.github.io/blog/categories/ios/atom.xml" rel="self"/>
   <link href="http://MrBoog.github.io/"/>
-  <updated>2016-01-18T21:29:27+08:00</updated>
+  <updated>2016-01-18T21:44:54+08:00</updated>
   <id>http://MrBoog.github.io/</id>
   <author>
     <name><![CDATA[HuanLiu]]></name>
@@ -12,6 +12,162 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[GCD Barriers 与 Groups]]></title>
+    <link href="http://MrBoog.github.io/blog/2016/01/18/gcd-barriers-yu-groups/"/>
+    <updated>2016-01-18T21:41:55+08:00</updated>
+    <id>http://MrBoog.github.io/blog/2016/01/18/gcd-barriers-yu-groups</id>
+    <content type="html"><![CDATA[<h3>GCD barriers 与 groups</h3>
+
+<p>在学会简单的使用GCD处理多线程之后，我们来再深入了解下GCD对多线程的一些控制。</p>
+
+<h4>dispatch barriers</h4>
+
+<p>在使用 Concurrent Queue 的时候，有时候我们希望队列中的某项任务，能够被串行执行，来避免资源竞争等多线程问题。比如遇到读写问题，这时候我们就需要使用 dispatch barriers。来保证即使在并行队列中，对某个对象的读和写操作，在同一时刻，只有一个可以被执行。这时候就可以用到 dispatch barriers了。下面我们来讨论一下，不同的队列中barriers的使用：</p>
+
+<ul>
+<li><p>Custom Serial Queue: 在串行队列中，队列都是顺序串行执行，使用barriers没有任何好处。一般来讲我们不需要这么做。</p></li>
+<li><p>Global Concurrent Queue: 这里虽然是并行队列，但这个队列是全局的，我们不能保证别人没有使用这个队列。对这个队列加barriers，可能会影响到其他模块的功能。所以不建议在这个队列中使用。</p></li>
+<li><p>Custom Concurrent Queue: 在自定义的并行队列中使用barriers，是比较合适的方式。</p></li>
+</ul>
+
+
+<p>所以当我们要做的并行操作，可能存在线程安全问题的时候。我们最好考虑新建自定义并行队列，而不是简单地使用系统提供的 Global Queue。</p>
+
+<p>举一个例子，假设某一个类要管理MyClass这个类型的读写，下面列举这个类的一些相关方法:</p>
+
+<p>```</p>
+
+<pre><code>//初始化自定义并发队列
+- (instancetype)init{
+
+    if(self = [super init]){
+        customConcurrentQueue = dispatch_queue_create("com.customConcurrentQueue", DISPATCH_QUEUE_CONCURRENT); 
+    }
+}
+
+//写方法
+- (void)write:(MyClass *)myClass {
+
+    if( myClass ){
+
+        //使用barrier，保证写方法，可以串行执行
+        dispatch_barrier_async(self.customConcurrentQueue, ^{ 
+
+            //写操作
+            ...
+        });
+    }
+}
+
+//读方法
+- (MyClass *)read{
+
+    //要保证，读和写方法不能同时执行，
+    //首先，他们要在同一个队列中 ：self.customConcurrentQueue
+    //其次，读方法要等待读出数据后返回，所以应该是同步操作 ：dispatch_sync
+
+    __block MyClass *myClass = [[MyClass alloc] init];
+
+    dispatch_sync(self.customConcurrentQueue, ^{
+
+        //读操作
+        myClass = ...
+    });
+
+    return myClass;
+}
+</code></pre>
+
+<p>```</p>
+
+<h4>dispatch groups</h4>
+
+<p>有时候，我们需要在多个并行任务全部完成后，做一些操作，这时候就需要用到 group来管理了。</p>
+
+<p>举一个简单的例子。我有4个任务要使用并发处理，任务4要等待，任务1、2、3完成后执行。同时，任务4不阻塞当前的线程：</p>
+
+<p>```
+&ndash; (void)testDispatchGroup{</p>
+
+<pre><code>dispatch_queue_t concurrentQueue = dispatch_queue_create("com.test.testConcurrent", DISPATCH_QUEUE_CONCURRENT);
+
+dispatch_group_t group = dispatch_group_create();
+
+//异步操作
+dispatch_group_async(group, concurrentQueue, ^{
+
+    任务1
+});
+
+dispatch_group_async(group, concurrentQueue, ^{
+
+    任务2
+});
+
+dispatch_group_async(group, concurrentQueue, ^{
+
+    任务3
+});
+
+//dispatch_group_notify 中的block执行的是我们最后要做的任务。同时，这里是异步操作，不会阻塞后面其他代码的执行。
+dispatch_group_notify(group, dispatch_get_main_queue(), ^{
+
+    //前面3个任务，都执行完成后，执行里面的block
+    任务4
+});
+
+    ...
+</code></pre>
+
+<p>}</p>
+
+<p>```</p>
+
+<p>再看另一个需求，还是之前的4个任务。唯一的区别是，任务4除了要等待其他任务完成，还要阻塞当前线程：</p>
+
+<p>```
+&ndash; (void)testDispatchGroup{</p>
+
+<pre><code>dispatch_group_t group = dispatch_group_create();
+
+//异步操作
+dispatch_group_async(group, concurrentQueue, ^{
+
+    任务1
+});
+
+dispatch_group_async(group, concurrentQueue, ^{
+
+    任务2
+});
+
+dispatch_group_async(group, concurrentQueue, ^{
+
+    任务3
+});
+
+//dispatch_group_wait 等待上面任务全部完成，阻塞当前线程，直到超过设置的时间
+//使用时，要注意避免阻塞主线程等问题
+dispatch_group_wait(group, DISPATCH_TIME_FOREVER);
+
+任务4
+
+...
+</code></pre>
+
+<p>}</p>
+
+<p>```</p>
+
+<p>另外，除了使用dispatch_group_async管理要做的任务。还可以使用<code>dispatch_group_enter</code>、 <code>dispatch_group_leave</code> 组合的方式，手动通知任务完成。如果使用手动管理的话，我们要注意：<code>enter和leave方法，应该是成对出现的</code>。</p>
+
+<p>dispatch_group_enter(customGroup) : 手动告知customGroup，表示一个任务已经开始执行。</p>
+
+<p>dispatch_group_leave(customGroup) : 手动告知customGroup，表示一个任务已经完成。当所有enter对应的leave方法都执行过后。我们的<code>dispatch_group_notify()</code>或者<code>dispatch_group_wait()</code>，就可以接到任务完成的通知。</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[GCD 同步与异步 串行与并行]]></title>
@@ -773,91 +929,6 @@ _salesCountLabel.text = [NSString stringWithFormat:NSLocalizedString(@"Yesterday
 <p>原作者：<a href="http://www.raywenderlich.com/u/ali.hafizji">Ali Hafizji</a></p>
 
 <p>译者：<a href="https://twitter.com/nixzhu">@nixzhu</a></p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[MacOS下配置php环境测试推送]]></title>
-    <link href="http://MrBoog.github.io/blog/2014/03/30/push/"/>
-    <updated>2014-03-30T16:29:11+08:00</updated>
-    <id>http://MrBoog.github.io/blog/2014/03/30/push</id>
-    <content type="html"><![CDATA[<h3>首先在Mac下配置php环境</h3>
-
-<p>在iOS开发中，有时候我们经常要测试APNS推送的部分，我们可以本地自己搭建推送的环境，这样自己测试起来也能提高效率。目前有很多类似的开源项目，比如<a href="https://github.com/stefanhafeneger/PushMeBaby">pushmebaby</a>,<a href="https://github.com/blommegard/APNS-Pusher">APNS-Pusher</a>。本文适合喜欢自己在本地折腾的同学。</p>
-
-<h5>启动Mac的Apache服务。</h5>
-
-<ol>
-<li><p>如果您还是10.7的用户，只需要在<code>系统偏好设置--&gt;共享</code>中勾选<code>web共享</code>即可:
-<img src="../images/image_source/apns_1.png" alt="" /><br/>
-<img src="../images/image_source/apns_3.png" alt="" /><br/>
-浏览器中输入<code>localhost/~[用户名]</code>，就可以直接访问<code>/Users/[用户名]/Sites</code> 目录.</p></li>
-<li><p>对于10.8或10.9的用户运行apache服务，需要通过terminal手动开启, 输入下述命令开启服务<br/>
-<code>sudo apachectl start</code>  <br/>
-这样就可以了，浏览器中输入:&ldquo;localhost&rdquo;,应该能看到"It works"的字样. <br/>
-<img src="../images/image_source/apns_5.png" alt="" /> <br/>
-cd /,到根目录下，在根目录的Library/WebServer/Documents/里面就是我们访问的地方.</p></li>
-</ol>
-
-
-<h5>开启PHP服务</h5>
-
-<ol>
-<li>在终端中运行<code>sudo vi /etc/apache2/httpd.conf</code>，打开Apache的配置文件。</li>
-<li>找到“#LoadModule php5_module libexec/apache2/libphp5.so”，把前面的#号去掉。然后:wq保存。</li>
-<li>运行<code>sudo apachectl restart</code>，重启Apache。ok，到这里PHP就可以用了。</li>
-<li>运行<code>cp /Library/WebServer/Documents/index.html.en /Library/WebServer/Documents/info.php</code>。即在Apache的根目录下复制index.html.en文件并重命名为info.php。</li>
-<li>在终端中运行<code>vi /Library/WebServer/Document/info.php</code>，这样就可以在vi中编辑info.php文件了。在“It’s works!”后面加上“&lt;?php phpinfo(); ?>”，然后保存之。这样就可以在<code>http://localhost/info.php</code>，中看到有关PHP的信息，比如版本号是5.3.26。<br/>
-<img src="../images/image_source/apns_6.png" alt="" /></li>
-</ol>
-
-
-<h5>php推送</h5>
-
-<p>上述部分都完成后，就可以写php，来实现推送功能了。相关php代码可到<a href="https://github.com/MrBoog/push">这里</a>去下载。将push文件夹放置于Library/WebServer/Documents/目录下，访问<code>http://localhost/push/apns_form.php</code>，测试的时候替换Library/WebServer/Documents/push/目录下的证书apns_dev.pem与apns_pro.pem即可。 <br/>
-<img src="../images/image_source/apns_7.png" alt="" /></p>
-
-<hr />
-
-<p>由于10.7之后，系统没有自带用户级的web目录~/Sites，我们目前的操作都是在系统级的根目录下进行的：</p>
-
-<p>/Library/WebServer/Documents/</p>
-
-<p>当然我们也可以在</p>
-
-<p>/Users/mac/Sites</p>
-
-<p>目录下建立用户级的Sites，命令如下：</p>
-
-<pre><code> sudo mkdir ~/Sites
-</code></pre>
-
-<p>检查下面这个文件夹下面，有没有 “username”.conf文件，我的名字是mac，</p>
-
-<p><img src="../images/image_source/apns_8.png" alt="" /></p>
-
-<p>如果没有的话就创建一个，</p>
-
-<pre><code> sudo vi /etc/apache2/users/"username".conf
-</code></pre>
-
-<p>用vi打开后，将下面这里username替换成自己的，并复制进去，然后:wq保存。</p>
-
-<pre><code> &lt;Directory "/Users/'username'/Sites/"&gt;   
- Options Indexes MultiViews  
- AllowOverride All  
- Order allow,deny  
- Allow from all    
- &lt;/Directory&gt;
-</code></pre>
-
-<p>保存后分配相应权限，然后重启Apache。</p>
-
-<pre><code> sudo chmod 755 /etc/apache2/users/你的用户名.conf  
- sudo apachectl restart
-</code></pre>
-
-<p>到此，访问<code>http://localhost/~'username'</code>试试看，我们也可以访问用户级站点了。</p>
 ]]></content>
   </entry>
   
