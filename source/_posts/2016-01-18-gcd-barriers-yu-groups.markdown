@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "GCD barriers 与 groups"
+title: "GCD同步操作之 barriers  groups  semaphore"
 date: 2016-01-18 21:41:55 +0800
 comments: true
 categories: iOS
@@ -8,7 +8,7 @@ categories: iOS
 ---
 
 
-### GCD barriers 与 groups
+
 
 在学会简单的使用GCD处理多线程之后，我们来再深入了解下GCD对多线程的一些控制。
 
@@ -72,6 +72,7 @@ categories: iOS
 	
 ```
 
+---
 
 #### dispatch groups
 
@@ -159,3 +160,50 @@ dispatch_group_enter(customGroup) : 手动告知customGroup，表示一个任务
 
 
 dispatch_group_leave(customGroup) : 手动告知customGroup，表示一个任务已经完成。当所有enter对应的leave方法都执行过后。我们的`dispatch_group_notify()`或者`dispatch_group_wait()`，就可以接到任务完成的通知。
+
+
+---
+
+
+#### dispatch semaphore 信号量
+
+当有多个消费者，访问有限的资源的时候，[信号量](https://en.wikipedia.org/wiki/Semaphore_(programming\)) 可以让我们更好的控制。简单来说，我们通过对信号个数的控制，来达到线程间的同步操作。当信号个数为0的时候，当前线程被阻塞，等待信号量增加，当信号量个数大于0的时候，则线程继续执行。 
+
+注意，同步的操作都要小心使用，避免死锁等问题。
+
+另外，根据dispatch_semaphore_wait的返回值，可以用于判断某任务是否超时操作。
+
+
+```
+
+- (void)testSemaphore{
+
+	//创建 信号量 参数代表初始个数
+	dispatch_semaphore_t semaphore = dispatch_semaphore_create(0);
+
+
+	dispatch_async(concurrentQueue, ^{
+	
+		sleep(2);
+	
+		//发送一个信号，信号量个数 +1	
+		dispatch_semaphore_signal(semaphore);
+	});
+
+
+	dispatch_async(concurrentQueue, ^{
+	
+		dispatch_time_t timeoutTime = dispatch_time(DISPATCH_TIME_NOW, 1 * NSEC_PER_SEC);
+	
+		//线程等待，当信号量大于0时 任务继续执行，信号量 -1
+		//线程等待，超过预定的超时时间 任务继续执行 信号量不变
+		//关于返回值：当返回值 不为0 的时候，说明超时
+		if( dispatch_semaphore_wait(semaphore, timeoutTime) ){
+			NSLog(@"time out");
+		}
+	});
+}
+
+
+```
+
