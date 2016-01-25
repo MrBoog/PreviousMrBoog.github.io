@@ -19,11 +19,12 @@ CoreGraphics框架在iOS开发中，与UIKit相依为命，占着十分重要的
 	
 	UIGraphicsGetCurrentContext()
 	
-	//在drawRect中直接获得图形上下文：CGContextRef context = UIGraphicsGetCurrentContext();
+	//在drawRect中直接获得图形上下文：
+	CGContextRef context = UIGraphicsGetCurrentContext();
 
 ---
 
-不过，在某种情况下。比如对图片的处理，截图，缩放等，需要我们手动创建图形上下文。
+不过，在其他情况下，比如对图片的处理，截图，缩放等，需要我们手动创建图形上下文。
 
 
 先来了解一下获得图形上下文的相关方法:
@@ -35,7 +36,7 @@ CoreGraphics框架在iOS开发中，与UIKit相依为命，占着十分重要的
 	void UIGraphicsBeginImageContextWithOptions(
 	   CGSize size,
 	   BOOL opaque,//否不透明。YES则忽略alpha通道
-	   CGFloat scale//缩放因子。我的理解：传1.0，真对于普通屏一个点一个像素；传2.0，针对Retina一个点四个像素。传0.0，根据当前设备匹配[UIScreen mainScreen].scale；
+	   CGFloat scale//缩放因子。传1.0 普通屏一个点一个像素；传2.0，针对Retina一个点四个像素。传0.0，根据当前设备匹配[UIScreen mainScreen].scale；
 	);
 
 	UIGraphicsBeginImageContext(CGSize size)
@@ -43,7 +44,9 @@ CoreGraphics框架在iOS开发中，与UIKit相依为命，占着十分重要的
 	void UIGraphicsBeginImageContext (
 	   CGSize size
 	);
-	//这个相当于UIGraphicsBeginImageContextWithOptions (CGSize size,NO,1.0). 所以不推荐大家用UIGraphicsBeginImageContext(CGSize size)。多使用UIGraphicsBeginImageContextWithOptions()。
+	//这个相当于UIGraphicsBeginImageContextWithOptions (CGSize size,NO,1.0). 
+	所以不推荐UIGraphicsBeginImageContext(CGSize size)。
+	多使用UIGraphicsBeginImageContextWithOptions()。
  
 
 	
@@ -51,6 +54,9 @@ CoreGraphics框架在iOS开发中，与UIKit相依为命，占着十分重要的
 ---
 
 创建上下文，并将绘制的图保存到UIImage中		
+
+```
+
 //创建上下文
 UIGraphicsBeginImageContextWithOptions(size,NO,[[UIScreen mainScreen] scale]);		
 …绘图…		
@@ -59,9 +65,14 @@ UIImage *result = UIGraphicsGetImageFromCurrentImageContext();
 //清除上下文		
 UIGraphicsEndImageContext();
 
+```
+
 ---	
 
 将绘制的图保存到UIImage中		
+
+```
+
 CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();	
 //创建上下文		
 CGContextRef context = CGBitmapContextCreate(NULL,width,height,8,width*4,colorSpace,kCGImageAlphaPremultipliedLast);	
@@ -77,13 +88,14 @@ CGImageRelease(image);
 CGContextRelease(context);			
 CGColorSpaceRelease(colorSpace);		
 
+```
 
 ---
 
 
 大部分情况下，我们绘制的时候，都是子类化UIView，在drawRect:方法中绘制，并通过 setNeedsDisplay刷新。
 
-学习几个绘制常用的属性		
+几个绘制常用的属性		
 
 * path
 * shadow
