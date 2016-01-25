@@ -5,11 +5,11 @@
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <title>GCD Barriers 与 Groups - HuanLiu's Blog</title>
+  <title>GCD同步操作之 Barriers Groups Semaphore - HuanLiu's Blog</title>
   <meta name="author" content="HuanLiu">
 
   
-  <meta name="description" content="GCD barriers 与 groups 在学会简单的使用GCD处理多线程之后，我们来再深入了解下GCD对多线程的一些控制。 dispatch barriers 在使用 Concurrent Queue 的时候，有时候我们希望队列中的某项任务，能够被串行执行，来避免资源竞争等多线程问题。 &hellip;">
+  <meta name="description" content="在学会简单的使用GCD处理多线程之后，我们来再深入了解下GCD对多线程的一些控制。 dispatch barriers 在使用 Concurrent Queue 的时候，有时候我们希望队列中的某项任务，能够被串行执行，来避免资源竞争等多线程问题。比如遇到读写问题，这时候我们就需要使用 &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -68,7 +68,7 @@
   
   <header>
     
-      <h1 class="entry-title">GCD Barriers 与 Groups</h1>
+      <h1 class="entry-title">GCD同步操作之 Barriers Groups Semaphore</h1>
     
     
       <p class="meta">
@@ -94,9 +94,7 @@
   </header>
 
 
-<div class="entry-content"><h3>GCD barriers 与 groups</h3>
-
-<p>在学会简单的使用GCD处理多线程之后，我们来再深入了解下GCD对多线程的一些控制。</p>
+<div class="entry-content"><p>在学会简单的使用GCD处理多线程之后，我们来再深入了解下GCD对多线程的一些控制。</p>
 
 <h4>dispatch barriers</h4>
 
@@ -196,6 +194,8 @@
 </span><span class='line'>  }
 </span><span class='line'>  </span></code></pre></td></tr></table></div></figure>
 
+
+<hr />
 
 <h4>dispatch groups</h4>
 
@@ -336,6 +336,79 @@
 <p>dispatch_group_enter(customGroup) : 手动告知customGroup，表示一个任务已经开始执行。</p>
 
 <p>dispatch_group_leave(customGroup) : 手动告知customGroup，表示一个任务已经完成。当所有enter对应的leave方法都执行过后。我们的<code>dispatch_group_notify()</code>或者<code>dispatch_group_wait()</code>，就可以接到任务完成的通知。</p>
+
+<hr />
+
+<h4>dispatch semaphore 信号量</h4>
+
+<p>当有多个消费者，访问有限的资源的时候，<a href="https://en.wikipedia.org/wiki/Semaphore_(programming)">信号量</a> 可以让我们更好的控制。简单来说，我们通过对信号个数的控制，来达到线程间的同步操作。当信号个数为0的时候，当前线程被阻塞，等待信号量增加，当信号量个数大于0的时候，则线程继续执行。</p>
+
+<p>注意，同步的操作都要小心使用，避免死锁等问题。</p>
+
+<p>另外，根据dispatch_semaphore_wait的返回值，可以用于判断某任务是否超时操作。</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>
+</span><span class='line'>- (void)testSemaphore{
+</span><span class='line'>
+</span><span class='line'>  //创建 信号量 参数代表初始个数
+</span><span class='line'>  dispatch_semaphore_t semaphore = dispatch_semaphore_create(0);
+</span><span class='line'>
+</span><span class='line'>
+</span><span class='line'>  dispatch_async(concurrentQueue, ^{
+</span><span class='line'>  
+</span><span class='line'>      sleep(2);
+</span><span class='line'>  
+</span><span class='line'>      //发送一个信号，信号量个数 +1   
+</span><span class='line'>      dispatch_semaphore_signal(semaphore);
+</span><span class='line'>  });
+</span><span class='line'>
+</span><span class='line'>
+</span><span class='line'>  dispatch_async(concurrentQueue, ^{
+</span><span class='line'>  
+</span><span class='line'>      dispatch_time_t timeoutTime = dispatch_time(DISPATCH_TIME_NOW, 1 * NSEC_PER_SEC);
+</span><span class='line'>  
+</span><span class='line'>      //线程等待，当信号量大于0时 任务继续执行，信号量 -1
+</span><span class='line'>      //线程等待，超过预定的超时时间 任务继续执行 信号量不变
+</span><span class='line'>      //关于返回值：当返回值 不为0 的时候，说明超时
+</span><span class='line'>      if( dispatch_semaphore_wait(semaphore, timeoutTime) ){
+</span><span class='line'>          NSLog(@"time out");
+</span><span class='line'>      }
+</span><span class='line'>  });
+</span><span class='line'>}
+</span><span class='line'>
+</span></code></pre></td></tr></table></div></figure>
+
+
+
 </div>
 
 
@@ -403,7 +476,7 @@
   <ul id="recent_posts">
     
       <li class="post">
-        <a href="/blog/2016/01/18/gcd-barriers-yu-groups/">GCD Barriers 与 Groups</a>
+        <a href="/blog/2016/01/18/gcd-barriers-yu-groups/">GCD同步操作之 Barriers Groups Semaphore</a>
       </li>
     
       <li class="post">
