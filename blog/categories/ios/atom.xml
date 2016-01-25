@@ -4,7 +4,7 @@
   <title><![CDATA[Category: iOS | HuanLiu's Blog]]></title>
   <link href="http://MrBoog.github.io/blog/categories/ios/atom.xml" rel="self"/>
   <link href="http://MrBoog.github.io/"/>
-  <updated>2016-01-25T15:36:04+08:00</updated>
+  <updated>2016-01-25T15:57:00+08:00</updated>
   <id>http://MrBoog.github.io/</id>
   <author>
     <name><![CDATA[HuanLiu]]></name>
@@ -15,12 +15,12 @@
   
   <entry>
     <title type="html"><![CDATA[GCD同步操作之 Barriers Groups Semaphore]]></title>
-    <link href="http://MrBoog.github.io/blog/2016/01/18/gcd-barriers-yu-groups/"/>
+    <link href="http://MrBoog.github.io/blog/2016/01/18/gcd-synchron/"/>
     <updated>2016-01-18T21:41:55+08:00</updated>
-    <id>http://MrBoog.github.io/blog/2016/01/18/gcd-barriers-yu-groups</id>
+    <id>http://MrBoog.github.io/blog/2016/01/18/gcd-synchron</id>
     <content type="html"><![CDATA[<p>在学会简单的使用GCD处理多线程之后，我们来再深入了解下GCD对多线程的一些控制。</p>
 
-<h4>dispatch barriers</h4>
+<h2>dispatch barriers</h2>
 
 <p>在使用 Concurrent Queue 的时候，有时候我们希望队列中的某项任务，能够被串行执行，来避免资源竞争等多线程问题。比如遇到读写问题，这时候我们就需要使用 dispatch barriers。来保证即使在并行队列中，对某个对象的读和写操作，在同一时刻，只有一个可以被执行。这时候就可以用到 dispatch barriers了。下面我们来讨论一下，不同的队列中barriers的使用：</p>
 
@@ -82,7 +82,7 @@
 
 <hr />
 
-<h4>dispatch groups</h4>
+<h2>dispatch groups</h2>
 
 <p>有时候，我们需要在多个并行任务全部完成后，做一些操作，这时候就需要用到 group来管理了。</p>
 
@@ -169,7 +169,7 @@ dispatch_group_wait(group, DISPATCH_TIME_FOREVER);
 
 <hr />
 
-<h4>dispatch semaphore 信号量</h4>
+<h2>dispatch semaphore 信号量</h2>
 
 <p>当有多个消费者，访问有限的资源的时候，<a href="https://en.wikipedia.org/wiki/Semaphore_(programming)">信号量</a> 可以让我们更好的控制。简单来说，我们通过对信号个数的控制，来达到线程间的同步操作。当信号个数为0的时候，当前线程被阻塞，等待信号量增加，当信号量个数大于0的时候，则线程继续执行。</p>
 
@@ -246,7 +246,7 @@ dispatch_group_wait(group, DISPATCH_TIME_FOREVER);
 
 <hr />
 
-<h3>Serial Queues</h3>
+<h2>Serial Queues</h2>
 
 <p>在串行队列里，同一时间只能执行一个任务。任务按照被添加进入队列的顺序依次执行。每一个任务只有在前面的任务完成后，才可以开始执行。</p>
 
@@ -259,7 +259,7 @@ dispatch_group_wait(group, DISPATCH_TIME_FOREVER);
 </ul>
 
 
-<h3>Concurrent Queues</h3>
+<h2>Concurrent Queues</h2>
 
 <p>加入并行队列的任务，执行的顺序也是按照任务被加入队列的顺序执行，这是我们唯一可以保证的。每个任务都不用等待之前的任务完成，同一时刻可以多个任务同时执行。</p>
 
@@ -272,7 +272,7 @@ dispatch_group_wait(group, DISPATCH_TIME_FOREVER);
 </ul>
 
 
-<h3>Custom Queue</h3>
+<h2>Custom Queue</h2>
 
 <p>除了系统提供的全局队列之外，我们还可以自定义串行或者并行的队列。</p>
 
@@ -300,7 +300,7 @@ dispatch_queue_t myConcurrentQueue = dispatch_queue_create("com.myConcurrentQueu
 
 <hr />
 
-<h3>dispatch_async  异步执行</h3>
+<h2>dispatch_async  异步执行</h2>
 
 <p>dispatch_async 用来用异步的方式执行串行或者并行队列里面的任务，我们来看一下使用 dispatch_async 的几种常见情况：</p>
 
@@ -351,7 +351,7 @@ dispatch_async(myConcurrentQueue, ^{
 
 <hr />
 
-<h3>dispatch_sync 同步执行</h3>
+<h2>dispatch_sync 同步执行</h2>
 
 <p>大部分时候我们执行dispatch_sync操作，都要格外小心些。</p>
 
@@ -398,7 +398,7 @@ dispatch_async(myConcurrentQueue, ^{
 
 <hr />
 
-<h3>dispatch_after</h3>
+<h2>dispatch_after</h2>
 
 <p>异步延迟操作。实际上 dispatch_after 就像一个延迟执行的 dispatch_async。</p>
 

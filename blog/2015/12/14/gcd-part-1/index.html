@@ -120,7 +120,7 @@ concurrent（并行） 可以同时执行多个任务 侧重描述一个函数�
 
 <hr />
 
-<h3>Serial Queues</h3>
+<h2>Serial Queues</h2>
 
 <p>在串行队列里，同一时间只能执行一个任务。任务按照被添加进入队列的顺序依次执行。每一个任务只有在前面的任务完成后，才可以开始执行。</p>
 
@@ -133,7 +133,7 @@ concurrent（并行） 可以同时执行多个任务 侧重描述一个函数�
 </ul>
 
 
-<h3>Concurrent Queues</h3>
+<h2>Concurrent Queues</h2>
 
 <p>加入并行队列的任务，执行的顺序也是按照任务被加入队列的顺序执行，这是我们唯一可以保证的。每个任务都不用等待之前的任务完成，同一时刻可以多个任务同时执行。</p>
 
@@ -146,7 +146,7 @@ concurrent（并行） 可以同时执行多个任务 侧重描述一个函数�
 </ul>
 
 
-<h3>Custom Queue</h3>
+<h2>Custom Queue</h2>
 
 <p>除了系统提供的全局队列之外，我们还可以自定义串行或者并行的队列。</p>
 
@@ -177,7 +177,7 @@ concurrent（并行） 可以同时执行多个任务 侧重描述一个函数�
 
 <hr />
 
-<h3>dispatch_async  异步执行</h3>
+<h2>dispatch_async  异步执行</h2>
 
 <p>dispatch_async 用来用异步的方式执行串行或者并行队列里面的任务，我们来看一下使用 dispatch_async 的几种常见情况：</p>
 
@@ -246,7 +246,7 @@ concurrent（并行） 可以同时执行多个任务 侧重描述一个函数�
 
 <hr />
 
-<h3>dispatch_sync 同步执行</h3>
+<h2>dispatch_sync 同步执行</h2>
 
 <p>大部分时候我们执行dispatch_sync操作，都要格外小心些。</p>
 
@@ -318,7 +318,7 @@ concurrent（并行） 可以同时执行多个任务 侧重描述一个函数�
 
 <hr />
 
-<h3>dispatch_after</h3>
+<h2>dispatch_after</h2>
 
 <p>异步延迟操作。实际上 dispatch_after 就像一个延迟执行的 dispatch_async。</p>
 
@@ -382,7 +382,7 @@ concurrent（并行） 可以同时执行多个任务 侧重描述一个函数�
         <a class="basic-alignment left" href="/blog/2015/09/30/guan-yu-nsoperation/" title="Previous Post: 关于NSOperation">&laquo; 关于NSOperation</a>
       
       
-        <a class="basic-alignment right" href="/blog/2016/01/18/gcd-barriers-yu-groups/" title="Next Post: GCD同步操作之 barriers  groups  semaphore">GCD同步操作之 barriers  groups  semaphore &raquo;</a>
+        <a class="basic-alignment right" href="/blog/2016/01/18/gcd-synchron/" title="Next Post: GCD同步操作之 barriers  groups  semaphore">GCD同步操作之 barriers  groups  semaphore &raquo;</a>
       
     </p>
   </footer>
@@ -403,7 +403,7 @@ concurrent（并行） 可以同时执行多个任务 侧重描述一个函数�
   <ul id="recent_posts">
     
       <li class="post">
-        <a href="/blog/2016/01/18/gcd-barriers-yu-groups/">GCD同步操作之 Barriers Groups Semaphore</a>
+        <a href="/blog/2016/01/18/gcd-synchron/">GCD同步操作之 Barriers Groups Semaphore</a>
       </li>
     
       <li class="post">
