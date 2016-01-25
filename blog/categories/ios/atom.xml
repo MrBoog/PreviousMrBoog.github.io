@@ -4,7 +4,7 @@
   <title><![CDATA[Category: iOS | HuanLiu's Blog]]></title>
   <link href="http://MrBoog.github.io/blog/categories/ios/atom.xml" rel="self"/>
   <link href="http://MrBoog.github.io/"/>
-  <updated>2016-01-25T15:57:00+08:00</updated>
+  <updated>2016-01-25T16:09:18+08:00</updated>
   <id>http://MrBoog.github.io/</id>
   <author>
     <name><![CDATA[HuanLiu]]></name>
@@ -15,9 +15,9 @@
   
   <entry>
     <title type="html"><![CDATA[GCD同步操作之 Barriers Groups Semaphore]]></title>
-    <link href="http://MrBoog.github.io/blog/2016/01/18/gcd-synchron/"/>
-    <updated>2016-01-18T21:41:55+08:00</updated>
-    <id>http://MrBoog.github.io/blog/2016/01/18/gcd-synchron</id>
+    <link href="http://MrBoog.github.io/blog/2016/01/10/gcd-synchron/"/>
+    <updated>2016-01-10T21:41:55+08:00</updated>
+    <id>http://MrBoog.github.io/blog/2016/01/10/gcd-synchron</id>
     <content type="html"><![CDATA[<p>在学会简单的使用GCD处理多线程之后，我们来再深入了解下GCD对多线程的一些控制。</p>
 
 <h2>dispatch barriers</h2>
