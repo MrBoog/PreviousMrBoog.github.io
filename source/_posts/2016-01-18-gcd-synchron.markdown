@@ -12,7 +12,7 @@ categories: iOS
 
 在学会简单的使用GCD处理多线程之后，我们来再深入了解下GCD对多线程的一些控制。
 
-#### dispatch barriers
+## dispatch barriers
 
 在使用 Concurrent Queue 的时候，有时候我们希望队列中的某项任务，能够被串行执行，来避免资源竞争等多线程问题。比如遇到读写问题，这时候我们就需要使用 dispatch barriers。来保证即使在并行队列中，对某个对象的读和写操作，在同一时刻，只有一个可以被执行。这时候就可以用到 dispatch barriers了。下面我们来讨论一下，不同的队列中barriers的使用：
 
@@ -74,7 +74,7 @@ categories: iOS
 
 ---
 
-#### dispatch groups
+## dispatch groups
 
 
 有时候，我们需要在多个并行任务全部完成后，做一些操作，这时候就需要用到 group来管理了。
@@ -165,7 +165,7 @@ dispatch_group_leave(customGroup) : 手动告知customGroup，表示一个任务
 ---
 
 
-#### dispatch semaphore 信号量
+## dispatch semaphore 信号量
 
 当有多个消费者，访问有限的资源的时候，[信号量](https://en.wikipedia.org/wiki/Semaphore_(programming\)) 可以让我们更好的控制。简单来说，我们通过对信号个数的控制，来达到线程间的同步操作。当信号个数为0的时候，当前线程被阻塞，等待信号量增加，当信号量个数大于0的时候，则线程继续执行。 
 

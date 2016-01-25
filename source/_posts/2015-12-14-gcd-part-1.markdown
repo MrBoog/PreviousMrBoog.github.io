@@ -27,7 +27,7 @@ categories: iOS
 
 ---
 
-### Serial Queues
+## Serial Queues
 
 在串行队列里，同一时间只能执行一个任务。任务按照被添加进入队列的顺序依次执行。每一个任务只有在前面的任务完成后，才可以开始执行。
 
@@ -37,7 +37,7 @@ categories: iOS
 
 	main queue是一个串行队列，有串行队列的一切特性。比较特殊的一点是加入这个队列的任务，都是在主线程执行的。
 
-### Concurrent Queues
+## Concurrent Queues
 
 加入并行队列的任务，执行的顺序也是按照任务被加入队列的顺序执行，这是我们唯一可以保证的。每个任务都不用等待之前的任务完成，同一时刻可以多个任务同时执行。
 
@@ -48,7 +48,7 @@ categories: iOS
 	这是另一个我们熟悉的并发队列，很多时候我们直接使用这个队列，可以简单处理一些我们需要并发执行的任务。
 	
 	
-### Custom Queue	
+## Custom Queue	
 
 除了系统提供的全局队列之外，我们还可以自定义串行或者并行的队列。
 
@@ -77,7 +77,7 @@ categories: iOS
 
 ---
 
-### dispatch_async  异步执行
+## dispatch_async  异步执行
 
 dispatch_async 用来用异步的方式执行串行或者并行队列里面的任务，我们来看一下使用 dispatch_async 的几种常见情况：
 
@@ -120,7 +120,7 @@ dispatch_async 用来用异步的方式执行串行或者并行队列里面的�
 
 ---
 
-### dispatch_sync 同步执行
+## dispatch_sync 同步执行
 
 大部分时候我们执行dispatch_sync操作，都要格外小心些。
 
@@ -161,7 +161,7 @@ dispatch_async 用来用异步的方式执行串行或者并行队列里面的�
 
 ---
 
-### dispatch_after
+## dispatch_after
 
 异步延迟操作。实际上 dispatch_after 就像一个延迟执行的 dispatch_async。
 
