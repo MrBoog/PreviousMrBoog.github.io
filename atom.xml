@@ -4,7 +4,7 @@
   <title><![CDATA[HuanLiu's Blog]]></title>
   <link href="http://MrBoog.github.io/atom.xml" rel="self"/>
   <link href="http://MrBoog.github.io/"/>
-  <updated>2016-01-25T16:09:18+08:00</updated>
+  <updated>2016-01-28T20:54:53+08:00</updated>
   <id>http://MrBoog.github.io/</id>
   <author>
     <name><![CDATA[HuanLiu]]></name>
@@ -15,10 +15,10 @@
   
   <entry>
     <title type="html"><![CDATA[GCD同步操作之 Barriers Groups Semaphore]]></title>
-    <link href="http://MrBoog.github.io/blog/2016/01/10/gcd-synchron/"/>
-    <updated>2016-01-10T21:41:55+08:00</updated>
-    <id>http://MrBoog.github.io/blog/2016/01/10/gcd-synchron</id>
-    <content type="html"><![CDATA[<p>在学会简单的使用GCD处理多线程之后，我们来再深入了解下GCD对多线程的一些控制。</p>
+    <link href="http://MrBoog.github.io/blog/2015/12/28/gcd-synchron/"/>
+    <updated>2015-12-28T21:41:55+08:00</updated>
+    <id>http://MrBoog.github.io/blog/2015/12/28/gcd-synchron</id>
+    <content type="html"><![CDATA[<p>在学会简单的使用GCD处理多线程之后，我们来再深入了解下GCD对多线程的一些同步控制。</p>
 
 <h2>dispatch barriers</h2>
 
@@ -341,7 +341,7 @@
     <link href="http://MrBoog.github.io/blog/2015/12/14/gcd-part-1/"/>
     <updated>2015-12-14T15:25:27+08:00</updated>
     <id>http://MrBoog.github.io/blog/2015/12/14/gcd-part-1</id>
-    <content type="html"><![CDATA[<p>先看一下GCD中的常见的术语</p>
+    <content type="html"><![CDATA[<p>GCD是iOS开发多线程中经常使用的技术，先看一下GCD中的常见的术语</p>
 
 <p>描述多个任务之间同一时刻的运行关系：</p>
 
@@ -579,6 +579,151 @@
 </span><span class='line'>
 </span><span class='line'>});
 </span></code></pre></td></tr></table></div></figure>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Hello ReactNative]]></title>
+    <link href="http://MrBoog.github.io/blog/2015/11/11/helloreactnative/"/>
+    <updated>2015-11-11T16:09:23+08:00</updated>
+    <id>http://MrBoog.github.io/blog/2015/11/11/helloreactnative</id>
+    <content type="html"><![CDATA[<p>虽然很多开发者都是一直使用Oc和Swift开发iOS应用，但不得不说ReactNative的&#8217;learn-once write-anywhere&#8217;，对开发者还是有强大的吸引力的。用Js写逻辑，并且使用原生的UI，不依托于浏览器，如今的Js越来越强大。即便是使用原生语言的开发者，也应该详细了解下。</p>
+
+<h3>配置 React Native</h3>
+
+<p>要想在项目中使用<a href="https://facebook.github.io/react-native/docs/getting-started.html#content">ReactNative</a>，需要先搭建Node.js环境。下面我们使用nvm，下载管理Node.js。</p>
+
+<ul>
+<li>nvm</li>
+</ul>
+
+
+<p>官方安装和使用 nvm 的<a href="https://github.com/creationix/nvm#installation">步骤</a>。简单整理下：</p>
+
+<p>安装：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>     curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.30.2/install.sh | bash
+</span><span class='line'>
+</span><span class='line'>  sh ~/.nvm/nvm.sh
+</span><span class='line'>  </span></code></pre></td></tr></table></div></figure>
+
+
+<p>把下面的内容追加到 <code>~/.bashrc</code> 和 <code>~/.profile</code> 中</p>
+
+<p>例如：vim ~/.bashrc</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>source ~/.nvm/nvm.sh</span></code></pre></td></tr></table></div></figure>
+
+
+<p>完成后重启终端</p>
+
+<p>使用nvm下载Node：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>//查看支持版本
+</span><span class='line'>nvm ls-remote
+</span><span class='line'>  
+</span><span class='line'>nvm install v5.5.0
+</span><span class='line'>
+</span><span class='line'>nvm use v5.5.0</span></code></pre></td></tr></table></div></figure>
+
+
+<p>或者直接下载最新版本的Node</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>nvm install node && nvm alias default node</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li>安装watchman</li>
+</ul>
+
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>brew install watchman</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li>安装 React Native CLI tool</li>
+</ul>
+
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>npm install -g react-native-cli
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>准备工作基本结束</p>
+
+<hr />
+
+<h3>hello world</h3>
+
+<p>下面我们选择一个目录，新建一个ReactNative项目。</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>react-native init HelloReactNative</span></code></pre></td></tr></table></div></figure>
+
+
+<p>找到index.ios.js，替换一下下面的代码。找到iOS文件夹下面的工程，运行一下，一个简单用ReactNative实现的helloworld程序，就可以跑起来了。</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>'use strict';
+</span><span class='line'>
+</span><span class='line'>var React = require('react-native');
+</span><span class='line'>
+</span><span class='line'>var styles = React.StyleSheet.create({
+</span><span class='line'>  text: {
+</span><span class='line'>    color: 'black',
+</span><span class='line'>    backgroundColor: 'white',
+</span><span class='line'>    fontSize: 30,
+</span><span class='line'>    margin: 80
+</span><span class='line'>  }
+</span><span class='line'>});
+</span><span class='line'>
+</span><span class='line'>
+</span><span class='line'>// for app itself
+</span><span class='line'>class ReactNativeDemoApp extends React.Component {
+</span><span class='line'>  render() {
+</span><span class='line'>    return React.createElement(React.Text, {style: styles.text}, "Hello World");
+</span><span class='line'>  }
+</span><span class='line'>}
+</span><span class='line'>
+</span><span class='line'>React.AppRegistry.registerComponent('HelloReactNative', () =&gt; ReactNativeDemoApp);</span></code></pre></td></tr></table></div></figure>
+
+
 
 ]]></content>
   </entry>
