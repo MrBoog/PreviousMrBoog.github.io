@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "GCD同步操作之 barriers  groups  semaphore"
-date: 2016-01-10 21:41:55 +0800
+date: 2016-01-8 21:41:55 +0800
 comments: true
 categories: iOS
 
