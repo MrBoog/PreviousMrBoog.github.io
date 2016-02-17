@@ -1166,6 +1166,197 @@
       
   <header>
     
+      <h1 class="entry-title"><a href="/blog/2015/01/17/shi-yong-javascriptcore/">使用 JavaScriptCore</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2015-01-17T16:06:55+08:00" pubdate data-updated="true">Jan 17<span>th</span>, 2015</time>
+        
+           | <a href="/blog/2015/01/17/shi-yong-javascriptcore/#disqus_thread"
+             data-disqus-identifier="http://MrBoog.github.io/blog/2015/01/17/shi-yong-javascriptcore/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>随着iOS7 JavaScript引擎的开放，JS在移动端使用场景越来越多。之前，要想在Oc中调用Js，不可避免要使用webview，JavaScriptCore是可以不依托于webview的。比如当下比较火的 ReactNative、JSPatch 都有应用这个库。大部分时候我们可能不需要手写Oc和JS的交互处理，但至少也应该可以看得懂，这样也方便我们理解一些Hybrid开源框架。</p>
+
+<p>JavaScriptCore框架中，两个比较重要的类：</p>
+
+<ul>
+<li><p>JSContext 作用域，一段JS的执行环境。</p></li>
+<li><p>JSValue JS是弱类型语言(即变量的类型是不确定的,Oc、Swift都是强类型)，JSValue用来处理这种差异，对象转化。</p></li>
+</ul>
+
+
+<h5>Oc to JS</h5>
+
+<p>在Oc内部，通过JSContext类，直接调用一段JS，返回值包裹在JSValue类型中。</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>
+</span><span class='line'>  JSContext *context = [[]JSContext alloc] init];
+</span><span class='line'>  // 获取错误信息 便于调试  
+</span><span class='line'>  context.exceptionHandler = ^(JSContext *context,JSValue *exception){
+</span><span class='line'>      NSLog(@"Error is : %@",exception);
+</span><span class='line'>  }
+</span><span class='line'>  
+</span><span class='line'>  // 执行JS
+</span><span class='line'>  [context evaluateScript:@"var num = 2 * 8"];
+</span><span class='line'>  [context evaluateScript:@"var colors = ['black','blue','green','red']"];
+</span><span class='line'>  [context evaluateScript:@"var triple = function(value) { return value * 3 } "];
+</span><span class='line'>  
+</span><span class='line'>  // 获取Context中创建的变量的值，包裹在JSValue中
+</span><span class='line'>  JSValue *num = [context objectForKeyedSubscript:@"num"];
+</span><span class='line'>  JSValue *colors = [context objectForKeyedSubscript:@"colors"];
+</span><span class='line'>  JSValue *colorName = [colors objectAtIndexedSubscript:1];
+</span><span class='line'>  
+</span><span class='line'>  // 调用JS函数，
+</span><span class='line'>  JSValue *function = [context objectForKeyedSubscript:@"triple"];
+</span><span class='line'>  JSValue *result = [function callWithArguments:@[@16]];
+</span><span class='line'>  
+</span><span class='line'>  </span></code></pre></td></tr></table></div></figure>
+
+
+<h5>JS to Oc</h5>
+
+<p>context可设置block，JS通过调用block，来实现JS调用Oc。在使用中值得注意的是内存管理，要避免循环引用。如果在block，还需要调用JS，应使用[JSContext currentContext]取得上下文，不应该直接使用外部的context或者value。</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>
+</span><span class='line'>context["callback"]    = ^(NSArray *colorArray){
+</span><span class='line'>  NSLog(@"callback : %@",colorArray);
+</span><span class='line'>}
+</span><span class='line'>[context evaluateScript:@" callback( [\"black\",\"blue\",\"green\"] ) "];
+</span><span class='line'>
+</span><span class='line'>
+</span><span class='line'>// 下面情况，注意避免循环引用
+</span><span class='line'>[context evaluateScript:@"var colorsCount = function(value) { return value.length }"];
+</span><span class='line'>
+</span><span class='line'>context[@"callbackAgain"] = ^(NSArray *colorArray){
+</span><span class='line'>    
+</span><span class='line'>    JSContext *curContext = [JSContext currentContext];
+</span><span class='line'>    JSValue *colorsCount = [curContext evaluateScript:@"colorsCount"];
+</span><span class='line'>    JSValue *count = [colorsCount callWithArguments:@[colorArray]];
+</span><span class='line'>    NSLog(@"%@",count);
+</span><span class='line'>};
+</span><span class='line'>[context evaluateScript:@"callbackAgain( [\"black\",\"red\"] )"];
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>上述方法，传值都是限于 Foundation 类型。那JS种是否可以使用Oc的类的？这就要用到 JSExport 协议了。</p>
+
+<h5>使用 JSExport 协议</h5>
+
+<p>创建一个CustomObject类，继承 ExportProtocol 协议</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>
+</span><span class='line'>  @protocol ExportProtocol &lt;JSExport&gt;
+</span><span class='line'>  - (void)log:(NSString *)string;
+</span><span class='line'>  @end
+</span><span class='line'>  
+</span><span class='line'>  @interface CustomObject : NSObject &lt;ExportProtocol&gt;
+</span><span class='line'>  @end
+</span><span class='line'>  
+</span><span class='line'>  @implementation CustomObject
+</span><span class='line'>  - (void)log:(NSString *)string{
+</span><span class='line'>      NSLog(@" js : %@",string);
+</span><span class='line'>  }
+</span><span class='line'>  @end
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>上面我们创建了一个可以给JS使用的Oc类，具体调用类似JS调用block，代码如下</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>
+</span><span class='line'>context[@"customObject"] = [[CustomObject alloc] init];
+</span><span class='line'>
+</span><span class='line'>[context evaluateScript:@" customObject.log(\"Hello world\") "];
+</span><span class='line'>  </span></code></pre></td></tr></table></div></figure>
+
+
+<p>这样，通过继承JSExport协议，我们就可以在JS中，调用Oc类的方法了。</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
       <h1 class="entry-title"><a href="/blog/2014/06/09/random-in-ios/">Random in iOS</a></h1>
     
     
@@ -2006,7 +2197,7 @@ cd /,到根目录下，在根目录的Library/WebServer/Documents/里面就是�
       </li>
     
       <li class="post">
-        <a href="/blog/2014/06/09/random-in-ios/">Random in iOS</a>
+        <a href="/blog/2015/01/17/shi-yong-javascriptcore/">使用 JavaScriptCore</a>
       </li>
     
   </ul>

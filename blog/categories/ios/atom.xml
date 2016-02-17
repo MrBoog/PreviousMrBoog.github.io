@@ -4,7 +4,7 @@
   <title><![CDATA[Category: iOS | HuanLiu's Blog]]></title>
   <link href="http://MrBoog.github.io/blog/categories/ios/atom.xml" rel="self"/>
   <link href="http://MrBoog.github.io/"/>
-  <updated>2016-01-28T20:54:53+08:00</updated>
+  <updated>2016-02-17T16:12:55+08:00</updated>
   <id>http://MrBoog.github.io/</id>
   <author>
     <name><![CDATA[HuanLiu]]></name>
@@ -758,61 +758,111 @@ NSOperationQueue *queue = [[NSOperationQueue alloc] init];
   </entry>
   
   <entry>
-    <title type="html"><![CDATA[Random in iOS]]></title>
-    <link href="http://MrBoog.github.io/blog/2014/06/09/random-in-ios/"/>
-    <updated>2014-06-09T23:10:41+08:00</updated>
-    <id>http://MrBoog.github.io/blog/2014/06/09/random-in-ios</id>
-    <content type="html"><![CDATA[<p>生成随机数   <br/>
-arc4random(void)//不够平衡<br/>
-推荐    <br/>
-arc4random_uniform(u_int32_t)</p>
+    <title type="html"><![CDATA[使用 JavaScriptCore]]></title>
+    <link href="http://MrBoog.github.io/blog/2015/01/17/shi-yong-javascriptcore/"/>
+    <updated>2015-01-17T16:06:55+08:00</updated>
+    <id>http://MrBoog.github.io/blog/2015/01/17/shi-yong-javascriptcore</id>
+    <content type="html"><![CDATA[<p>随着iOS7 JavaScript引擎的开放，JS在移动端使用场景越来越多。之前，要想在Oc中调用Js，不可避免要使用webview，JavaScriptCore是可以不依托于webview的。比如当下比较火的 ReactNative、JSPatch 都有应用这个库。大部分时候我们可能不需要手写Oc和JS的交互处理，但至少也应该可以看得懂，这样也方便我们理解一些Hybrid开源框架。</p>
 
-<p>生成 [0 , n )，之间的随机数：</p>
+<p>JavaScriptCore框架中，两个比较重要的类：</p>
 
-<p><code>
-NSUInteger foo = arc4random_uniform(n);
-</code></p>
+<ul>
+<li><p>JSContext 作用域，一段JS的执行环境。</p></li>
+<li><p>JSValue JS是弱类型语言(即变量的类型是不确定的,Oc、Swift都是强类型)，JSValue用来处理这种差异，对象转化。</p></li>
+</ul>
 
-<p>生成 [minimum , maximum]，之间的随机数：</p>
 
-<p><code>
-NSUInteger foo = arc4random_uniform((maximum - minimum) + 1) + minimum;
-</code></p>
+<h5>Oc to JS</h5>
 
-<p>除整数之外，产生(0 , 1)，之前的随机数：</p>
+<p>在Oc内部，通过JSContext类，直接调用一段JS，返回值包裹在JSValue类型中。</p>
 
-<p><code>
-//先种随机种子
-srand48(time(0));
-double foo = drand48();
-</code></p>
+<p>```</p>
 
-<p>延伸一下，随机取数组中的元素：</p>
-
-<p><code>
-//arc4random_uniform(n) 随机范围是[0，n），可直接用于数组下标
-if ([array count] &gt; 0) {
-  id obj = array[arc4random_uniform([array count])];
+<pre><code>JSContext *context = [[]JSContext alloc] init];
+// 获取错误信息 便于调试  
+context.exceptionHandler = ^(JSContext *context,JSValue *exception){
+    NSLog(@"Error is : %@",exception);
 }
-</code></p>
 
-<p>没有使用NSSet，却想打乱顺序：</p>
+// 执行JS
+[context evaluateScript:@"var num = 2 * 8"];
+[context evaluateScript:@"var colors = ['black','blue','green','red']"];
+[context evaluateScript:@"var triple = function(value) { return value * 3 } "];
 
-<p>```
-NSMutableArray *mutableArray = [NSMutableArray arrayWithArray:array];
-NSUInteger count = [mutableArray count];
-// See <a href="http://en.wikipedia.org/wiki/Fisher%E2%80%93Yates_shuffle">http://en.wikipedia.org/wiki/Fisher%E2%80%93Yates_shuffle</a>
-if (count > 1) {
-  for (NSUInteger i = count &ndash; 1; i > 0; &mdash;i) {</p>
+// 获取Context中创建的变量的值，包裹在JSValue中
+JSValue *num = [context objectForKeyedSubscript:@"num"];
+JSValue *colors = [context objectForKeyedSubscript:@"colors"];
+JSValue *colorName = [colors objectAtIndexedSubscript:1];
 
-<pre><code>  [mutableArray exchangeObjectAtIndex:i withObjectAtIndex:arc4random_uniform((int32_t)(i + 1))];
+// 调用JS函数，
+JSValue *function = [context objectForKeyedSubscript:@"triple"];
+JSValue *result = [function callWithArguments:@[@16]];
 </code></pre>
 
-<p>  }
-}</p>
+<p>```</p>
 
-<p>NSArray *randomArray = [NSArray arrayWithArray:mutableArray];
-```</p>
+<h5>JS to Oc</h5>
+
+<p>context可设置block，JS通过调用block，来实现JS调用Oc。在使用中值得注意的是内存管理，要避免循环引用。如果在block，还需要调用JS，应使用[JSContext currentContext]取得上下文，不应该直接使用外部的context或者value。</p>
+
+<p>```</p>
+
+<pre><code>context["callback"]  = ^(NSArray *colorArray){
+    NSLog(@"callback : %@",colorArray);
+}
+[context evaluateScript:@" callback( [\"black\",\"blue\",\"green\"] ) "];
+
+
+// 下面情况，注意避免循环引用
+[context evaluateScript:@"var colorsCount = function(value) { return value.length }"];
+
+context[@"callbackAgain"] = ^(NSArray *colorArray){
+
+    JSContext *curContext = [JSContext currentContext];
+    JSValue *colorsCount = [curContext evaluateScript:@"colorsCount"];
+    JSValue *count = [colorsCount callWithArguments:@[colorArray]];
+    NSLog(@"%@",count);
+};
+[context evaluateScript:@"callbackAgain( [\"black\",\"red\"] )"];
+</code></pre>
+
+<p>```</p>
+
+<p>上述方法，传值都是限于 Foundation 类型。那JS种是否可以使用Oc的类的？这就要用到 JSExport 协议了。</p>
+
+<h5>使用 JSExport 协议</h5>
+
+<p>创建一个CustomObject类，继承 ExportProtocol 协议</p>
+
+<p>```</p>
+
+<pre><code>@protocol ExportProtocol &lt;JSExport&gt;
+- (void)log:(NSString *)string;
+@end
+
+@interface CustomObject : NSObject &lt;ExportProtocol&gt;
+@end
+
+@implementation CustomObject
+- (void)log:(NSString *)string{
+    NSLog(@" js : %@",string);
+}
+@end
+</code></pre>
+
+<p>```</p>
+
+<p>上面我们创建了一个可以给JS使用的Oc类，具体调用类似JS调用block，代码如下</p>
+
+<p>```</p>
+
+<pre><code>context[@"customObject"] = [[CustomObject alloc] init];
+
+[context evaluateScript:@" customObject.log(\"Hello world\") "];
+</code></pre>
+
+<p>```
+这样，通过继承JSExport协议，我们就可以在JS中，调用Oc类的方法了。</p>
 ]]></content>
   </entry>
   
