@@ -4,7 +4,7 @@
   <title><![CDATA[HuanLiu's Blog]]></title>
   <link href="http://MrBoog.github.io/atom.xml" rel="self"/>
   <link href="http://MrBoog.github.io/"/>
-  <updated>2016-02-17T17:11:07+08:00</updated>
+  <updated>2016-02-18T12:48:36+08:00</updated>
   <id>http://MrBoog.github.io/</id>
   <author>
     <name><![CDATA[HuanLiu]]></name>
@@ -1221,6 +1221,23 @@
 
 
 <p>这样，通过继承JSExport协议，我们就可以在JS中，调用Oc类的方法了。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Xcode6 Live View Debugger]]></title>
+    <link href="http://MrBoog.github.io/blog/2014/10/18/xcode6-live-view-debugger/"/>
+    <updated>2014-10-18T11:36:18+08:00</updated>
+    <id>http://MrBoog.github.io/blog/2014/10/18/xcode6-live-view-debugger</id>
+    <content type="html"><![CDATA[<p>之前查看视图层级，一直使用reveal。每次新的工程要想使用reveal，都要引入它的framework，用起来还是挺麻烦的。</p>
+
+<p>这次Xcode 6带来了自己的 live view debugger，支持iOS8模拟器。除非想做逆向相关的处理，查看其它app的层级。不然debug自己项目的话，已经够用了。</p>
+
+<p>just select <code>Debug\View  Debugging\Capture View Hierarchy</code></p>
+
+<p>当然相比于Reveal缺点也有，比如不支持iOS7，比如抓取视图的时候模拟器不能继续其他操作等等。</p>
+
+<p>了解更多<a href="http://www.raywenderlich.com/98356/view-debugging-in-xcode-6">点击这里</a></p>
 ]]></content>
   </entry>
   

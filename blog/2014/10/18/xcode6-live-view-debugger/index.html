@@ -5,13 +5,11 @@
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <title>Random in iOS - HuanLiu's Blog</title>
+  <title>Xcode6 Live View Debugger - HuanLiu's Blog</title>
   <meta name="author" content="HuanLiu">
 
   
-  <meta name="description" content="生成随机数 arc4random(void)//不够平衡
-推荐 arc4random_uniform(u_int32_t) 生成 [0 , n )，之间的随机数： 1
-NSUInteger foo = arc4random_uniform(n); 生成 [minimum , maximum]， &hellip;">
+  <meta name="description" content="之前查看视图层级，一直使用reveal。每次新的工程要想使用reveal，都要引入它的framework，用起来还是挺麻烦的。 这次Xcode 6带来了自己的 live view debugger，支持iOS8模拟器。除非想做逆向相关的处理，查看其它app的层级。不然debug自己项目的话， &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -20,7 +18,7 @@ NSUInteger foo = arc4random_uniform(n); 生成 [minimum , maximum]， &hellip;">
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   
-  <link rel="canonical" href="http://MrBoog.github.io/blog/2014/06/09/random-in-ios">
+  <link rel="canonical" href="http://MrBoog.github.io/blog/2014/10/18/xcode6-live-view-debugger">
   <link href="/favicon.png" rel="icon">
   <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
   <link href="/atom.xml" rel="alternate" title="HuanLiu's Blog" type="application/atom+xml">
@@ -70,7 +68,7 @@ NSUInteger foo = arc4random_uniform(n); 生成 [minimum , maximum]， &hellip;">
   
   <header>
     
-      <h1 class="entry-title">Random in iOS</h1>
+      <h1 class="entry-title">Xcode6 Live View Debugger</h1>
     
     
       <p class="meta">
@@ -86,7 +84,7 @@ NSUInteger foo = arc4random_uniform(n); 生成 [minimum , maximum]， &hellip;">
   
 
 
-<time datetime="2014-06-09T23:10:41+08:00" pubdate data-updated="true">Jun 9<span>th</span>, 2014</time>
+<time datetime="2014-10-18T11:36:18+08:00" pubdate data-updated="true">Oct 18<span>th</span>, 2014</time>
         
            | <a href="#disqus_thread"
              data-disqus-identifier="http://MrBoog.github.io">Comments</a>
@@ -96,68 +94,15 @@ NSUInteger foo = arc4random_uniform(n); 生成 [minimum , maximum]， &hellip;">
   </header>
 
 
-<div class="entry-content"><p>生成随机数   <br/>
-arc4random(void)//不够平衡<br/>
-推荐    <br/>
-arc4random_uniform(u_int32_t)</p>
+<div class="entry-content"><p>之前查看视图层级，一直使用reveal。每次新的工程要想使用reveal，都要引入它的framework，用起来还是挺麻烦的。</p>
 
-<p>生成 [0 , n )，之间的随机数：</p>
+<p>这次Xcode 6带来了自己的 live view debugger，支持iOS8模拟器。除非想做逆向相关的处理，查看其它app的层级。不然debug自己项目的话，已经够用了。</p>
 
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>NSUInteger foo = arc4random_uniform(n);</span></code></pre></td></tr></table></div></figure>
+<p>just select <code>Debug\View  Debugging\Capture View Hierarchy</code></p>
 
+<p>当然相比于Reveal缺点也有，比如不支持iOS7，比如抓取视图的时候模拟器不能继续其他操作等等。</p>
 
-<p>生成 [minimum , maximum]，之间的随机数：</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>NSUInteger foo = arc4random_uniform((maximum - minimum) + 1) + minimum;</span></code></pre></td></tr></table></div></figure>
-
-
-<p>除整数之外，产生(0 , 1)，之前的随机数：</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>//先种随机种子
-</span><span class='line'>srand48(time(0));
-</span><span class='line'>double foo = drand48();</span></code></pre></td></tr></table></div></figure>
-
-
-<p>延伸一下，随机取数组中的元素：</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>//arc4random_uniform(n) 随机范围是[0，n），可直接用于数组下标
-</span><span class='line'>if ([array count] &gt; 0) {
-</span><span class='line'>  id obj = array[arc4random_uniform([array count])];
-</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
-
-
-<p>没有使用NSSet，却想打乱顺序：</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>NSMutableArray *mutableArray = [NSMutableArray arrayWithArray:array];
-</span><span class='line'>NSUInteger count = [mutableArray count];
-</span><span class='line'>// See http://en.wikipedia.org/wiki/Fisher–Yates_shuffle
-</span><span class='line'>if (count &gt; 1) {
-</span><span class='line'>  for (NSUInteger i = count - 1; i &gt; 0; --i) {
-</span><span class='line'>      [mutableArray exchangeObjectAtIndex:i withObjectAtIndex:arc4random_uniform((int32_t)(i + 1))];
-</span><span class='line'>  }
-</span><span class='line'>}
-</span><span class='line'>
-</span><span class='line'>NSArray *randomArray = [NSArray arrayWithArray:mutableArray];</span></code></pre></td></tr></table></div></figure>
-
+<p>了解更多<a href="http://www.raywenderlich.com/98356/view-debugging-in-xcode-6">点击这里</a></p>
 </div>
 
 
@@ -180,7 +125,7 @@ arc4random_uniform(u_int32_t)</p>
   
 
 
-<time datetime="2014-06-09T23:10:41+08:00" pubdate data-updated="true">Jun 9<span>th</span>, 2014</time>
+<time datetime="2014-10-18T11:36:18+08:00" pubdate data-updated="true">Oct 18<span>th</span>, 2014</time>
       
 
 <span class="categories">
@@ -194,7 +139,7 @@ arc4random_uniform(u_int32_t)</p>
     
       <div class="sharing">
   
-  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://MrBoog.github.io/blog/2014/06/09/random-in-ios/" data-via="" data-counturl="http://MrBoog.github.io/blog/2014/06/09/random-in-ios/" >Tweet</a>
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://MrBoog.github.io/blog/2014/10/18/xcode6-live-view-debugger/" data-via="" data-counturl="http://MrBoog.github.io/blog/2014/10/18/xcode6-live-view-debugger/" >Tweet</a>
   
   
   
@@ -203,10 +148,10 @@ arc4random_uniform(u_int32_t)</p>
     
     <p class="meta">
       
-        <a class="basic-alignment left" href="/blog/2014/04/26/ios-guo-ji-hua-zhuan/" title="Previous Post: iOS 应用的国际化">&laquo; iOS 应用的国际化</a>
+        <a class="basic-alignment left" href="/blog/2014/06/09/random-in-ios/" title="Previous Post: random in iOS">&laquo; random in iOS</a>
       
       
-        <a class="basic-alignment right" href="/blog/2014/10/18/xcode6-live-view-debugger/" title="Next Post: Xcode6 live view debugger">Xcode6 live view debugger &raquo;</a>
+        <a class="basic-alignment right" href="/blog/2015/01/17/shi-yong-javascriptcore/" title="Next Post: 使用 JavaScriptCore <一>">使用 JavaScriptCore <一> &raquo;</a>
       
     </p>
   </footer>
@@ -272,8 +217,8 @@ arc4random_uniform(u_int32_t)</p>
       
         
         // var disqus_developer = 1;
-        var disqus_identifier = 'http://MrBoog.github.io/blog/2014/06/09/random-in-ios/';
-        var disqus_url = 'http://MrBoog.github.io/blog/2014/06/09/random-in-ios/';
+        var disqus_identifier = 'http://MrBoog.github.io/blog/2014/10/18/xcode6-live-view-debugger/';
+        var disqus_url = 'http://MrBoog.github.io/blog/2014/10/18/xcode6-live-view-debugger/';
         var disqus_script = 'embed.js';
       
     (function () {
