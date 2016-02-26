@@ -4,7 +4,7 @@
   <title><![CDATA[Category: LLDB | HuanLiu's Blog]]></title>
   <link href="http://MrBoog.github.io/blog/categories/lldb/atom.xml" rel="self"/>
   <link href="http://MrBoog.github.io/"/>
-  <updated>2016-02-18T12:48:36+08:00</updated>
+  <updated>2016-02-26T15:34:20+08:00</updated>
   <id>http://MrBoog.github.io/</id>
   <author>
     <name><![CDATA[HuanLiu]]></name>
@@ -56,7 +56,7 @@ error: 1 errors parsing expression
 </code></pre>
 
 <p>安装显示如下：
-<img src="../images/image_source/chisel_2.jpeg" alt="" /></p>
+<img src="http://mrboog.github.io/images/image_source/chisel_2.jpeg" alt="" /></p>
 
 <p>根据警告提示，需要把标注的部分文字加到~/.lldbinit文件里面:</p>
 
@@ -97,7 +97,7 @@ Syntax: border [--color=color] [--width=width] &lt;viewOrLayer&gt;
 <p>这样接着运行，当前的view边框的颜色就会变为红色了。可以很清晰的看清view的边界。很给力吧，这样省去了模糊不清的颜色混合层。当然，界面复杂的话，我们也可以借助工具reveal来查看。别的不在举例了，我们可以直接借助help命令来了解。如 help pviews等等。
 这里有一个表格</p>
 
-<p><img src="../images/image_source/chisel_1.jpeg" alt="" /></p>
+<p><img src="http://mrboog.github.io/images/image_source/chisel_1.jpeg" alt="" /></p>
 ]]></content>
   </entry>
   
