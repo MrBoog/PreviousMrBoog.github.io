@@ -48,7 +48,7 @@ Facebook 团队编写了一份基于LLDB的扩展插件[Chisel](https://github.c
 	brew install chisel
 	
 安装显示如下：
-![](../images/image_source/chisel_2.jpeg) 		
+![](http://mrboog.github.io/images/image_source/chisel_2.jpeg) 		
 
 根据警告提示，需要把标注的部分文字加到~/.lldbinit文件里面:
 
@@ -87,4 +87,4 @@ Facebook 团队编写了一份基于LLDB的扩展插件[Chisel](https://github.c
 这样接着运行，当前的view边框的颜色就会变为红色了。可以很清晰的看清view的边界。很给力吧，这样省去了模糊不清的颜色混合层。当然，界面复杂的话，我们也可以借助工具reveal来查看。别的不在举例了，我们可以直接借助help命令来了解。如 help pviews等等。
 这里有一个表格
 
-![](../images/image_source/chisel_1.jpeg) 
+![](http://mrboog.github.io/images/image_source/chisel_1.jpeg) 
