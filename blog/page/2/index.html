@@ -252,13 +252,13 @@ printf(&ldquo;%s&rdquo;,objCType);</p>
 
 <ol>
 <li><p>如果您还是10.7的用户，只需要在<code>系统偏好设置--&gt;共享</code>中勾选<code>web共享</code>即可:
-<img src="../images/image_source/apns_1.png" alt="" /><br/>
-<img src="../images/image_source/apns_3.png" alt="" /><br/>
+<img src="http://mrboog.github.io/images/image_source/apns_1.png" alt="" /><br/>
+<img src="http://mrboog.github.io/images/image_source/apns_3.png" alt="" /><br/>
 浏览器中输入<code>localhost/~[用户名]</code>，就可以直接访问<code>/Users/[用户名]/Sites</code> 目录.</p></li>
 <li><p>对于10.8或10.9的用户运行apache服务，需要通过terminal手动开启, 输入下述命令开启服务<br/>
 <code>sudo apachectl start</code>  <br/>
 这样就可以了，浏览器中输入:&ldquo;localhost&rdquo;,应该能看到&#8221;It works&#8221;的字样. <br/>
-<img src="../images/image_source/apns_5.png" alt="" /> <br/>
+<img src="http://mrboog.github.io/images/image_source/apns_5.png" alt="" /> <br/>
 cd /,到根目录下，在根目录的Library/WebServer/Documents/里面就是我们访问的地方.</p></li>
 </ol>
 
@@ -271,14 +271,14 @@ cd /,到根目录下，在根目录的Library/WebServer/Documents/里面就是�
 <li>运行<code>sudo apachectl restart</code>，重启Apache。ok，到这里PHP就可以用了。</li>
 <li>运行<code>cp /Library/WebServer/Documents/index.html.en /Library/WebServer/Documents/info.php</code>。即在Apache的根目录下复制index.html.en文件并重命名为info.php。</li>
 <li>在终端中运行<code>vi /Library/WebServer/Document/info.php</code>，这样就可以在vi中编辑info.php文件了。在“It’s works!”后面加上“&lt;?php phpinfo(); ?>”，然后保存之。这样就可以在<code>http://localhost/info.php</code>，中看到有关PHP的信息，比如版本号是5.3.26。<br/>
-<img src="../images/image_source/apns_6.png" alt="" /></li>
+<img src="http://mrboog.github.io/images/image_source/apns_6.png" alt="" /></li>
 </ol>
 
 
 <h5>php推送</h5>
 
 <p>上述部分都完成后，就可以写php，来实现推送功能了。相关php代码可到<a href="https://github.com/MrBoog/push">这里</a>去下载。将push文件夹放置于Library/WebServer/Documents/目录下，访问<code>http://localhost/push/apns_form.php</code>，测试的时候替换Library/WebServer/Documents/push/目录下的证书apns_dev.pem与apns_pro.pem即可。 <br/>
-<img src="../images/image_source/apns_7.png" alt="" /></p>
+<img src="http://mrboog.github.io/images/image_source/apns_7.png" alt="" /></p>
 
 <hr />
 
@@ -297,7 +297,7 @@ cd /,到根目录下，在根目录的Library/WebServer/Documents/里面就是�
 
 <p>检查下面这个文件夹下面，有没有 “username”.conf文件，我的名字是mac，</p>
 
-<p><img src="../images/image_source/apns_8.png" alt="" /></p>
+<p><img src="http://mrboog.github.io/images/image_source/apns_8.png" alt="" /></p>
 
 <p>如果没有的话就创建一个，</p>
 
