@@ -4,7 +4,7 @@
   <title><![CDATA[Category: iOS | HuanLiu's Blog]]></title>
   <link href="http://MrBoog.github.io/blog/categories/ios/atom.xml" rel="self"/>
   <link href="http://MrBoog.github.io/"/>
-  <updated>2016-02-26T16:47:16+08:00</updated>
+  <updated>2016-04-07T12:50:12+08:00</updated>
   <id>http://MrBoog.github.io/</id>
   <author>
     <name><![CDATA[HuanLiu]]></name>
@@ -758,54 +758,68 @@ NSOperationQueue *queue = [[NSOperationQueue alloc] init];
   </entry>
   
   <entry>
-    <title type="html"><![CDATA[使用 JavaScriptCore <二>]]></title>
-    <link href="http://MrBoog.github.io/blog/2015/02/10/shi-yong-javascriptcore-er/"/>
-    <updated>2015-02-10T17:04:29+08:00</updated>
-    <id>http://MrBoog.github.io/blog/2015/02/10/shi-yong-javascriptcore-er</id>
-    <content type="html"><![CDATA[<h4>当JSExport 遇见 class_addProtocol</h4>
+    <title type="html"><![CDATA[makeObjectsPerformSelector 方法]]></title>
+    <link href="http://MrBoog.github.io/blog/2015/04/07/makeobjectsperformselector-fang-fa/"/>
+    <updated>2015-04-07T11:25:28+08:00</updated>
+    <id>http://MrBoog.github.io/blog/2015/04/07/makeobjectsperformselector-fang-fa</id>
+    <content type="html"><![CDATA[<h3>makeObjectsPerformSelector 方法</h3>
 
-<p>之前我们已经大致了解了 JavaScriptCore的基础功能。下面我们想象一个这样的场景：</p>
+<p>当我们需要对NSArray 或者 NSSet里面的对象，执行同一个操作的时候，我们首先想到的可能是 for 循环。其实对于NSArray 和 NSSet 都有个一简便的方法:</p>
 
-<p>如果，我需要在JS中设置某个UIView的backgroundColor，那么我可以总么做呢？我们知道以下两点：</p>
+<p><code>makeObjectsPerformSelector:</code>，数组里面的元素同时执行某个 selector。<code>makeObjectsPerformSelector:withObject:</code>可以带一个参数。例如移除某个视图的所有subview，只要一句话：</p>
 
-<ul>
-<li><p>通过创建继承于 JSExport 的协议，可以让Oc暴漏给JS使用。</p></li>
-<li><p>通过 Runtime 的 class_addProtocol，我们可以给已经存在类添加协议。</p></li>
-</ul>
+<p> <code>
+ [self.subviews makeObjectsPerformSelector:@selector(removeFromSuperview)];
+</code></p>
 
+<hr />
 
-<p>这样，我们是不是可以给UIView动态添加继承于 JSExport 的协议，协议里包含backgroundColor属性的setter和getter方法。是不是JS中就可以调用了呢？</p>
+<p> 既然提到了循环，我们就总结一下，数组中其他几种常用的循环方式：</p>
 
-<p>代码如下：</p>
+<h4>for in</h4>
 
-<p>```</p>
-
-<pre><code>#import &lt;objc/runtime.h&gt;
-#import &lt;JavaScriptCore/JavaScriptCore.h&gt;
-
-
-@protocol UIViewExport &lt;JSExport&gt;
-    - (void)setBackgroundColor:(UIColor *)backgroundColor;
-    - (UIColor *)backgroundColor;
-@end
-
-
-
-- (void)viewDidLoad {
-    [super viewDidLoad];
-
-    class_addProtocol([UIView class],   @protocol(UIViewExport));
-
-
-    JSContext *context = [[JSContext alloc] init];
-    context[@"view"] = self.view;   
-    context[@"color"] = [UIColor blueColor];
-
-    [context evaluateScript:@" view.setBackgroundColor(color) "];
+<p><code>
+for (id obj in array){
 }
+</code></p>
+
+<h4>Block Enumeration</h4>
+
+<p>```
+[array enumerateObjectsUsingBlock: ^(id obj, NSUInteger idx, BOOL *stop) {</p>
+
+<p>}];</p>
+
+<p>//Concurrent:
+[array enumerateObjectsWithOptions: NSEnumerationConcurrent usingBlock: ^(id obj, NSUInteger idx, BOOL *stop) {</p>
+
+<p>}];
+```</p>
+
+<h4>GCD APPLY</h4>
+
+<p>```
+dispatch_queue_t queue = dispatch_get_global_queue(0, 0);</p>
+
+<p>//sync:
+dispatch_apply([array count], queue, ^(size_t idx) {</p>
+
+<pre><code>id obj = [array objectAtIndex: idx];
 </code></pre>
 
-<p>```</p>
+<p>});</p>
+
+<p>//Async:
+dispatch_async(queue, ^(void) {</p>
+
+<pre><code>dispatch_apply([array count], queue, ^(size_t idx) {
+    id obj = [array objectAtIndex: idx];
+
+});
+</code></pre>
+
+<p>});
+```</p>
 ]]></content>
   </entry>
   
