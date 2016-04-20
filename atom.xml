@@ -4,7 +4,7 @@
   <title><![CDATA[HuanLiu's Blog]]></title>
   <link href="http://MrBoog.github.io/atom.xml" rel="self"/>
   <link href="http://MrBoog.github.io/"/>
-  <updated>2016-04-07T12:50:12+08:00</updated>
+  <updated>2016-04-20T11:45:17+08:00</updated>
   <id>http://MrBoog.github.io/</id>
   <author>
     <name><![CDATA[HuanLiu]]></name>
@@ -12,6 +12,34 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Gem Source 更换]]></title>
+    <link href="http://MrBoog.github.io/blog/2016/04/20/gem-source-geng-huan/"/>
+    <updated>2016-04-20T11:43:30+08:00</updated>
+    <id>http://MrBoog.github.io/blog/2016/04/20/gem-source-geng-huan</id>
+    <content type="html"><![CDATA[<p>换电脑重新装pods的时候报错，其实是gem报错了。</p>
+
+<p>在执行 <code>gem install cocoapods</code> 的时候，遇到了下面的错误，</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>Unable to download data from https://ruby.taobao.org/ - SSL_connect returned=1 errno=0 state=SSLv3 read server certificate B: certificate verify failed (https://rubygems-china.oss-cn-hangzhou.aliyuncs.com/latest_specs.4.8.gz)</span></code></pre></td></tr></table></div></figure>
+
+
+<p>感觉像是阿里提供的源出了问题，在github上提了一个<a href="https://github.com/alibaba/ruby.taobao.org/issues/48">issue</a>，才知道原来是原作者不再维护了。根据作者提供的<a href="https://ruby-china.org/topics/29250">链接</a>，我们更换一下源就可以了。</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>gem sources --remove https://ruby.taobao.org/
+</span><span class='line'>
+</span><span class='line'>gem sources --add https://gems.ruby-china.org/
+</span></code></pre></td></tr></table></div></figure>
+
+
+
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[GCD同步操作之 Barriers Groups Semaphore]]></title>
