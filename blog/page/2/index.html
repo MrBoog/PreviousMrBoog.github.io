@@ -9,7 +9,9 @@
   <meta name="author" content="HuanLiu">
 
   
-  <meta name="description" content="2014 年 4 月 23 日更新：本文最初由 Sean Berry 编写， 因为 iOS 7，现在由 Ali Hafizji 将此文全面更新。 创造出色应用算得上是不小的壮举，除开伟大的代码、华丽的设计以及直观的交互外，还有更多要做的事。要爬上 App Store 的排行榜需要适时的产品营销、 &hellip;">
+  <meta name="description" content="生成随机数 arc4random(void)//不够平衡
+推荐 arc4random_uniform(u_int32_t) 生成 [0 , n )，之间的随机数： 1
+NSUInteger foo = arc4random_uniform(n); 生成 [minimum , maximum]， &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -65,6 +67,106 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2014/06/09/random-in-ios/">Random in iOS</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-06-09T23:10:41+08:00" pubdate data-updated="true">Jun 9<span>th</span>, 2014</time>
+        
+           | <a href="/blog/2014/06/09/random-in-ios/#disqus_thread"
+             data-disqus-identifier="http://MrBoog.github.io/blog/2014/06/09/random-in-ios/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>生成随机数   <br/>
+arc4random(void)//不够平衡<br/>
+推荐    <br/>
+arc4random_uniform(u_int32_t)</p>
+
+<p>生成 [0 , n )，之间的随机数：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>NSUInteger foo = arc4random_uniform(n);</span></code></pre></td></tr></table></div></figure>
+
+
+<p>生成 [minimum , maximum]，之间的随机数：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>NSUInteger foo = arc4random_uniform((maximum - minimum) + 1) + minimum;</span></code></pre></td></tr></table></div></figure>
+
+
+<p>除整数之外，产生(0 , 1)，之前的随机数：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>//先种随机种子
+</span><span class='line'>srand48(time(0));
+</span><span class='line'>double foo = drand48();</span></code></pre></td></tr></table></div></figure>
+
+
+<p>延伸一下，随机取数组中的元素：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>//arc4random_uniform(n) 随机范围是[0，n），可直接用于数组下标
+</span><span class='line'>if ([array count] &gt; 0) {
+</span><span class='line'>  id obj = array[arc4random_uniform([array count])];
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>没有使用NSSet，却想打乱顺序：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>NSMutableArray *mutableArray = [NSMutableArray arrayWithArray:array];
+</span><span class='line'>NSUInteger count = [mutableArray count];
+</span><span class='line'>// See http://en.wikipedia.org/wiki/Fisher–Yates_shuffle
+</span><span class='line'>if (count &gt; 1) {
+</span><span class='line'>  for (NSUInteger i = count - 1; i &gt; 0; --i) {
+</span><span class='line'>      [mutableArray exchangeObjectAtIndex:i withObjectAtIndex:arc4random_uniform((int32_t)(i + 1))];
+</span><span class='line'>  }
+</span><span class='line'>}
+</span><span class='line'>
+</span><span class='line'>NSArray *randomArray = [NSArray arrayWithArray:mutableArray];</span></code></pre></td></tr></table></div></figure>
+
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>

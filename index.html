@@ -1225,6 +1225,115 @@ Unable to download data from https://ruby.taobao.org/ - SSL_connect returned=1 &
       
   <header>
     
+      <h1 class="entry-title"><a href="/blog/2015/05/13/oc-zhong-de-super/">Oc 中的 Super</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2015-05-13T20:32:29+08:00" pubdate data-updated="true">May 13<span>th</span>, 2015</time>
+        
+           | <a href="/blog/2015/05/13/oc-zhong-de-super/#disqus_thread"
+             data-disqus-identifier="http://MrBoog.github.io/blog/2015/05/13/oc-zhong-de-super/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>我们都知道当使用 self 调用方法时，会从当前类的方法列表中开始找，如果没有，就从父类中再找。当使用 super 时，则从父类的方法列表中开始找，然后调用父类的这个方法。这里 self 代表的是当前调用方法这个类的实例，super 代表父类，但具体是什么，或者是怎么做的呢，我们可以做实验检测一下。</p>
+
+<p>创建一个Oc的类Dog，直接继承于 NSObject，里面有这样一些方法，</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>- (void)doEat:(NSString *)food{}
+</span><span class='line'>
+</span><span class='line'>- (instancetype)init
+</span><span class='line'>{
+</span><span class='line'>    if (self = [super init]) {
+</span><span class='line'>        NSLog(@"%@", [self class]);
+</span><span class='line'>        NSLog(@"%@", [super class]);
+</span><span class='line'>        NSLog(@"self %@",self);
+</span><span class='line'>        //NSLog(@"super %@",super);
+</span><span class='line'>    }
+</span><span class='line'>    return self;
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>在初始化方法里，我们分别输出self和super的类。Dog父类是NSObject，那super输出的会是NSObject么？运行后发现其实二者都是输出Dog。同时，self是一个指针可以看到地址，而当我们把上面注释的那句代码打开，编译器会报一个错误<code>Use of undeclared identifier 'super'</code>，可见super跟self不同的是，它不是当前类的一个参数。</p>
+
+<p>在终端中我们使用<code>clang -rewrite-objc Dog.m</code>，将上面代码转换成C，看到 &ndash; doEat:  转成了下面的C函数</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>static void _I_Dog_doEat_(Dog * self, SEL _cmd, NSString *food){}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>在C的方法中可以看到，这个方法里self是作为第一个参数传入的。这也印证了我们的想法，<code>self 是类的隐藏参数</code>，在转换成c后，每个类的实例方法中都会有这样一个参数。</p>
+
+<p>初始化中的NSLog方法，转换成C如下</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>NSLog((NSString *)&__NSConstantStringImpl__var_folders__z_yckwz02x3m1c7_8b6mc8zynm0000gn_T_Dog_ae5b20_mi_0, ((Class (*)(id, SEL))(void *)objc_msgSend)((id)self, sel_registerName("class")));
+</span><span class='line'>NSLog((NSString *)&__NSConstantStringImpl__var_folders__z_yckwz02x3m1c7_8b6mc8zynm0000gn_T_Dog_ae5b20_mi_1, ((Class (*)(__rw_objc_super *, SEL))(void *)objc_msgSendSuper)((__rw_objc_super){(id)self, (id)class_getSuperclass(objc_getClass("Dog"))}, sel_registerName("class")));
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>我们看到 self 和 super 调用方法时，分别使用了如下C函数</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>id objc_msgSend(id self, SEL op, ...)
+</span><span class='line'>id objc_msgSendSuper(struct objc_super *super, SEL op, ...)
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>所以，其实 super 与 self 不同，<code>不是一个参数，而是一个编译器标识符</code>。由 super 调用的方法，在编译后被转换成 objc_msgSendSuper，其中第一个参数 <a href="https://developer.apple.com/library/mac/documentation/Cocoa/Reference/ObjCRuntimeRef/#//apple_ref/c/tag/objc_super">结构体 objc_super</a> 也是编译器在遇到 super 关键字的时候，生成的。定义如下</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>struct objc_super { id receiver; Class class; };</span></code></pre></td></tr></table></div></figure>
+
+
+<p>所以编译器在遇到 super 时，大体做了两件事</p>
+
+<ul>
+<li>创建 objc_super结构体</li>
+<li>调用 objc_msgSendSuper，向父类方法发送消息。</li>
+</ul>
+
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
       <h1 class="entry-title"><a href="/blog/2015/04/07/makeobjectsperformselector-fang-fa/">makeObjectsPerformSelector 方法</a></h1>
     
     
@@ -1673,106 +1782,6 @@ Unable to download data from https://ruby.taobao.org/ - SSL_connect returned=1 &
 <p>当然相比于Reveal缺点也有，比如不支持iOS7，比如抓取视图的时候模拟器不能继续其他操作等等。</p>
 
 <p>了解更多<a href="http://www.raywenderlich.com/98356/view-debugging-in-xcode-6">点击这里</a></p>
-</div>
-  
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2014/06/09/random-in-ios/">Random in iOS</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2014-06-09T23:10:41+08:00" pubdate data-updated="true">Jun 9<span>th</span>, 2014</time>
-        
-           | <a href="/blog/2014/06/09/random-in-ios/#disqus_thread"
-             data-disqus-identifier="http://MrBoog.github.io/blog/2014/06/09/random-in-ios/">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>生成随机数   <br/>
-arc4random(void)//不够平衡<br/>
-推荐    <br/>
-arc4random_uniform(u_int32_t)</p>
-
-<p>生成 [0 , n )，之间的随机数：</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>NSUInteger foo = arc4random_uniform(n);</span></code></pre></td></tr></table></div></figure>
-
-
-<p>生成 [minimum , maximum]，之间的随机数：</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>NSUInteger foo = arc4random_uniform((maximum - minimum) + 1) + minimum;</span></code></pre></td></tr></table></div></figure>
-
-
-<p>除整数之外，产生(0 , 1)，之前的随机数：</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>//先种随机种子
-</span><span class='line'>srand48(time(0));
-</span><span class='line'>double foo = drand48();</span></code></pre></td></tr></table></div></figure>
-
-
-<p>延伸一下，随机取数组中的元素：</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>//arc4random_uniform(n) 随机范围是[0，n），可直接用于数组下标
-</span><span class='line'>if ([array count] &gt; 0) {
-</span><span class='line'>  id obj = array[arc4random_uniform([array count])];
-</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
-
-
-<p>没有使用NSSet，却想打乱顺序：</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>NSMutableArray *mutableArray = [NSMutableArray arrayWithArray:array];
-</span><span class='line'>NSUInteger count = [mutableArray count];
-</span><span class='line'>// See http://en.wikipedia.org/wiki/Fisher–Yates_shuffle
-</span><span class='line'>if (count &gt; 1) {
-</span><span class='line'>  for (NSUInteger i = count - 1; i &gt; 0; --i) {
-</span><span class='line'>      [mutableArray exchangeObjectAtIndex:i withObjectAtIndex:arc4random_uniform((int32_t)(i + 1))];
-</span><span class='line'>  }
-</span><span class='line'>}
-</span><span class='line'>
-</span><span class='line'>NSArray *randomArray = [NSArray arrayWithArray:mutableArray];</span></code></pre></td></tr></table></div></figure>
-
 </div>
   
   
