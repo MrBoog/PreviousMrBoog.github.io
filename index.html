@@ -130,6 +130,67 @@ Unable to download data from https://ruby.taobao.org/ - SSL_connect returned=1 &
       
   <header>
     
+      <h1 class="entry-title"><a href="/blog/2016/03/14/multicast-delegate-in-oc/">Multicast Delegate in Oc</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2016-03-14T20:52:33+08:00" pubdate data-updated="true">Mar 14<span>th</span>, 2016</time>
+        
+           | <a href="/blog/2016/03/14/multicast-delegate-in-oc/#disqus_thread"
+             data-disqus-identifier="http://MrBoog.github.io/blog/2016/03/14/multicast-delegate-in-oc/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>NSNotificationCenter 我们肯定都有使用过，通过发送广播，实现一对多的消息发送。NSNotificationCenter使用起来灵活性特别高，但有时候过度使用反而是NSNotificationCenter 弊端。在项目的设计中，我们也常会思考的一个问题：<strong>限制部分灵活性，以此来交换应用的可读性和可维护性。</strong></p>
+
+<p>NSNotificationCenter 允许应用各种跨层访问，监听者要配合合理使用add、remove等方法，出了问题实在不好跟踪。在某些时刻，需要酌情考虑是否应该使用。</p>
+
+<p>对于一对多的消息发送，其实还有很多办法可以考虑。比如说，我们可以通过<strong>NSProxy 实现消息转发</strong>，将我们普通一对一的delegate模式，改为一对多。</p>
+
+<p>我自己写了个简单的<a href="https://github.com/MrBoog/SafeMulticastDelegate">DEMO</a>方便查看</p>
+
+<p>在目前实现过程中，需要考虑的主要有下面三点：</p>
+
+<p><strong>1. 使用<a href="http://nshipster.com/nshashtable-and-nsmaptable/">NSHashTable</a> 处理循环引用问题</strong></p>
+
+<p>既然是一对多，肯定需要有容器保存delegate指针，出于避免循环引用等问题的考虑，目前使用<code>NSHashTable</code>代替了数组或者字典。</p>
+
+<p><strong>2. 使用message forwarding转发消息</strong></p>
+
+<p><code>-methodSignatureForSelector:</code> 和 <code>-forwardInvocation:</code>两个方法是实现转发的关键，使用<a href="https://developer.apple.com/library/mac/documentation/Cocoa/Reference/Foundation/Classes/NSProxy_Class/">NSProxy</a> 只是因为相对于 NSObject，NSProxy更专注于消息转发，没有其他太多无关的方法。当然也可以使用NSObject来做。</p>
+
+<p><strong>3. 处理 @optional的协议方法 crash问题</strong></p>
+
+<p>协议不可能都是 @required 肯定还有 @optional，在转发中记得处理可能crash的情况。</p>
+
+<p>使用Multicast Delegate，<strong>中间多了一层 protocol 关联</strong>，某种情况下可以解决NSNotificationCenter 跨层带来的过于松散等问题。</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
       <h1 class="entry-title"><a href="/blog/2015/12/28/gcd-synchron/">GCD同步操作之 Barriers Groups Semaphore</a></h1>
     
     
@@ -1742,53 +1803,6 @@ Unable to download data from https://ruby.taobao.org/ - SSL_connect returned=1 &
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2014/10/18/xcode6-live-view-debugger/">Xcode6 Live View Debugger</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2014-10-18T11:36:18+08:00" pubdate data-updated="true">Oct 18<span>th</span>, 2014</time>
-        
-           | <a href="/blog/2014/10/18/xcode6-live-view-debugger/#disqus_thread"
-             data-disqus-identifier="http://MrBoog.github.io/blog/2014/10/18/xcode6-live-view-debugger/">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>之前查看视图层级，一直使用reveal。每次新的工程要想使用reveal，都要引入它的framework，用起来还是挺麻烦的。</p>
-
-<p>这次Xcode 6带来了自己的 live view debugger，支持iOS8模拟器。除非想做逆向相关的处理，查看其它app的层级。不然debug自己项目的话，已经够用了。</p>
-
-<p>just select <code>Debug\View  Debugging\Capture View Hierarchy</code></p>
-
-<p>当然相比于Reveal缺点也有，比如不支持iOS7，比如抓取视图的时候模拟器不能继续其他操作等等。</p>
-
-<p>了解更多<a href="http://www.raywenderlich.com/98356/view-debugging-in-xcode-6">点击这里</a></p>
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/2/">&larr; Older</a>
@@ -1808,6 +1822,10 @@ Unable to download data from https://ruby.taobao.org/ - SSL_connect returned=1 &
       </li>
     
       <li class="post">
+        <a href="/blog/2016/03/14/multicast-delegate-in-oc/">Multicast Delegate in Oc</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2015/12/28/gcd-synchron/">GCD同步操作之 Barriers Groups Semaphore</a>
       </li>
     
@@ -1817,10 +1835,6 @@ Unable to download data from https://ruby.taobao.org/ - SSL_connect returned=1 &
     
       <li class="post">
         <a href="/blog/2015/11/11/helloreactnative/">Hello ReactNative</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2015/09/30/guan-yu-nsoperation/">关于NSOperation</a>
       </li>
     
   </ul>

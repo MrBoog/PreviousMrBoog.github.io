@@ -9,9 +9,7 @@
   <meta name="author" content="HuanLiu">
 
   
-  <meta name="description" content="生成随机数 arc4random(void)//不够平衡
-推荐 arc4random_uniform(u_int32_t) 生成 [0 , n )，之间的随机数： 1
-NSUInteger foo = arc4random_uniform(n); 生成 [minimum , maximum]， &hellip;">
+  <meta name="description" content="之前查看视图层级，一直使用reveal。每次新的工程要想使用reveal，都要引入它的framework，用起来还是挺麻烦的。 这次Xcode 6带来了自己的 live view debugger，支持iOS8模拟器。除非想做逆向相关的处理，查看其它app的层级。不然debug自己项目的话， &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -67,6 +65,53 @@ NSUInteger foo = arc4random_uniform(n); 生成 [minimum , maximum]， &hellip;">
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2014/10/18/xcode6-live-view-debugger/">Xcode6 Live View Debugger</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-10-18T11:36:18+08:00" pubdate data-updated="true">Oct 18<span>th</span>, 2014</time>
+        
+           | <a href="/blog/2014/10/18/xcode6-live-view-debugger/#disqus_thread"
+             data-disqus-identifier="http://MrBoog.github.io/blog/2014/10/18/xcode6-live-view-debugger/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>之前查看视图层级，一直使用reveal。每次新的工程要想使用reveal，都要引入它的framework，用起来还是挺麻烦的。</p>
+
+<p>这次Xcode 6带来了自己的 live view debugger，支持iOS8模拟器。除非想做逆向相关的处理，查看其它app的层级。不然debug自己项目的话，已经够用了。</p>
+
+<p>just select <code>Debug\View  Debugging\Capture View Hierarchy</code></p>
+
+<p>当然相比于Reveal缺点也有，比如不支持iOS7，比如抓取视图的时候模拟器不能继续其他操作等等。</p>
+
+<p>了解更多<a href="http://www.raywenderlich.com/98356/view-debugging-in-xcode-6">点击这里</a></p>
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -903,6 +948,10 @@ cd /,到根目录下，在根目录的Library/WebServer/Documents/里面就是�
       </li>
     
       <li class="post">
+        <a href="/blog/2016/03/14/multicast-delegate-in-oc/">Multicast Delegate in Oc</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2015/12/28/gcd-synchron/">GCD同步操作之 Barriers Groups Semaphore</a>
       </li>
     
@@ -912,10 +961,6 @@ cd /,到根目录下，在根目录的Library/WebServer/Documents/里面就是�
     
       <li class="post">
         <a href="/blog/2015/11/11/helloreactnative/">Hello ReactNative</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2015/09/30/guan-yu-nsoperation/">关于NSOperation</a>
       </li>
     
   </ul>

@@ -5,12 +5,11 @@
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <title>Gem Source 更换 - HuanLiu's Blog</title>
+  <title>Multicast Delegate in Oc - HuanLiu's Blog</title>
   <meta name="author" content="HuanLiu">
 
   
-  <meta name="description" content="换电脑重新装pods的时候报错，其实是gem报错了。 在执行 gem install cocoapods 的时候，遇到了下面的错误， 1
-Unable to download data from https://ruby.taobao.org/ - SSL_connect returned=1 &hellip;">
+  <meta name="description" content="NSNotificationCenter 我们肯定都有使用过，通过发送广播，实现一对多的消息发送。NSNotificationCenter使用起来灵活性特别高，但有时候过度使用反而是NSNotificationCenter 弊端。在项目的设计中，我们也常会思考的一个问题：限制部分灵活性， &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -19,7 +18,7 @@ Unable to download data from https://ruby.taobao.org/ - SSL_connect returned=1 &
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   
-  <link rel="canonical" href="http://MrBoog.github.io/blog/2016/04/20/gem-source-geng-huan">
+  <link rel="canonical" href="http://MrBoog.github.io/blog/2016/03/14/multicast-delegate-in-oc">
   <link href="/favicon.png" rel="icon">
   <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
   <link href="/atom.xml" rel="alternate" title="HuanLiu's Blog" type="application/atom+xml">
@@ -69,7 +68,7 @@ Unable to download data from https://ruby.taobao.org/ - SSL_connect returned=1 &
   
   <header>
     
-      <h1 class="entry-title">Gem Source 更换</h1>
+      <h1 class="entry-title">Multicast Delegate in Oc</h1>
     
     
       <p class="meta">
@@ -85,7 +84,7 @@ Unable to download data from https://ruby.taobao.org/ - SSL_connect returned=1 &
   
 
 
-<time datetime="2016-04-20T11:43:30+08:00" pubdate data-updated="true">Apr 20<span>th</span>, 2016</time>
+<time datetime="2016-03-14T20:52:33+08:00" pubdate data-updated="true">Mar 14<span>th</span>, 2016</time>
         
            | <a href="#disqus_thread"
              data-disqus-identifier="http://MrBoog.github.io">Comments</a>
@@ -95,26 +94,29 @@ Unable to download data from https://ruby.taobao.org/ - SSL_connect returned=1 &
   </header>
 
 
-<div class="entry-content"><p>换电脑重新装pods的时候报错，其实是gem报错了。</p>
+<div class="entry-content"><p>NSNotificationCenter 我们肯定都有使用过，通过发送广播，实现一对多的消息发送。NSNotificationCenter使用起来灵活性特别高，但有时候过度使用反而是NSNotificationCenter 弊端。在项目的设计中，我们也常会思考的一个问题：<strong>限制部分灵活性，以此来交换应用的可读性和可维护性。</strong></p>
 
-<p>在执行 <code>gem install cocoapods</code> 的时候，遇到了下面的错误，</p>
+<p>NSNotificationCenter 允许应用各种跨层访问，监听者要配合合理使用add、remove等方法，出了问题实在不好跟踪。在某些时刻，需要酌情考虑是否应该使用。</p>
 
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>Unable to download data from https://ruby.taobao.org/ - SSL_connect returned=1 errno=0 state=SSLv3 read server certificate B: certificate verify failed (https://rubygems-china.oss-cn-hangzhou.aliyuncs.com/latest_specs.4.8.gz)</span></code></pre></td></tr></table></div></figure>
+<p>对于一对多的消息发送，其实还有很多办法可以考虑。比如说，我们可以通过<strong>NSProxy 实现消息转发</strong>，将我们普通一对一的delegate模式，改为一对多。</p>
 
+<p>我自己写了个简单的<a href="https://github.com/MrBoog/SafeMulticastDelegate">DEMO</a>方便查看</p>
 
-<p>感觉像是阿里提供的源出了问题，在github上提了一个<a href="https://github.com/alibaba/ruby.taobao.org/issues/48">issue</a>，才知道原来是原作者不再维护了。根据作者提供的<a href="https://ruby-china.org/topics/29250">链接</a>，我们更换一下源就可以了。</p>
+<p>在目前实现过程中，需要考虑的主要有下面三点：</p>
 
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>gem sources --remove https://ruby.taobao.org/
-</span><span class='line'>
-</span><span class='line'>gem sources --add https://gems.ruby-china.org/
-</span></code></pre></td></tr></table></div></figure>
+<p><strong>1. 使用<a href="http://nshipster.com/nshashtable-and-nsmaptable/">NSHashTable</a> 处理循环引用问题</strong></p>
 
+<p>既然是一对多，肯定需要有容器保存delegate指针，出于避免循环引用等问题的考虑，目前使用<code>NSHashTable</code>代替了数组或者字典。</p>
 
+<p><strong>2. 使用message forwarding转发消息</strong></p>
 
+<p><code>-methodSignatureForSelector:</code> 和 <code>-forwardInvocation:</code>两个方法是实现转发的关键，使用<a href="https://developer.apple.com/library/mac/documentation/Cocoa/Reference/Foundation/Classes/NSProxy_Class/">NSProxy</a> 只是因为相对于 NSObject，NSProxy更专注于消息转发，没有其他太多无关的方法。当然也可以使用NSObject来做。</p>
+
+<p><strong>3. 处理 @optional的协议方法 crash问题</strong></p>
+
+<p>协议不可能都是 @required 肯定还有 @optional，在转发中记得处理可能crash的情况。</p>
+
+<p>使用Multicast Delegate，<strong>中间多了一层 protocol 关联</strong>，某种情况下可以解决NSNotificationCenter 跨层带来的过于松散等问题。</p>
 </div>
 
 
@@ -137,15 +139,21 @@ Unable to download data from https://ruby.taobao.org/ - SSL_connect returned=1 &
   
 
 
-<time datetime="2016-04-20T11:43:30+08:00" pubdate data-updated="true">Apr 20<span>th</span>, 2016</time>
+<time datetime="2016-03-14T20:52:33+08:00" pubdate data-updated="true">Mar 14<span>th</span>, 2016</time>
       
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/ios/'>iOS</a>
+  
+</span>
 
 
     </p>
     
       <div class="sharing">
   
-  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://MrBoog.github.io/blog/2016/04/20/gem-source-geng-huan/" data-via="" data-counturl="http://MrBoog.github.io/blog/2016/04/20/gem-source-geng-huan/" >Tweet</a>
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://MrBoog.github.io/blog/2016/03/14/multicast-delegate-in-oc/" data-via="" data-counturl="http://MrBoog.github.io/blog/2016/03/14/multicast-delegate-in-oc/" >Tweet</a>
   
   
   
@@ -154,8 +162,10 @@ Unable to download data from https://ruby.taobao.org/ - SSL_connect returned=1 &
     
     <p class="meta">
       
-        <a class="basic-alignment left" href="/blog/2016/03/14/multicast-delegate-in-oc/" title="Previous Post: Multicast Delegate in Oc">&laquo; Multicast Delegate in Oc</a>
+        <a class="basic-alignment left" href="/blog/2015/12/28/gcd-synchron/" title="Previous Post: GCD同步操作之 barriers  groups  semaphore">&laquo; GCD同步操作之 barriers  groups  semaphore</a>
       
+      
+        <a class="basic-alignment right" href="/blog/2016/04/20/gem-source-geng-huan/" title="Next Post: gem source 更换">gem source 更换 &raquo;</a>
       
     </p>
   </footer>
@@ -221,8 +231,8 @@ Unable to download data from https://ruby.taobao.org/ - SSL_connect returned=1 &
       
         
         // var disqus_developer = 1;
-        var disqus_identifier = 'http://MrBoog.github.io/blog/2016/04/20/gem-source-geng-huan/';
-        var disqus_url = 'http://MrBoog.github.io/blog/2016/04/20/gem-source-geng-huan/';
+        var disqus_identifier = 'http://MrBoog.github.io/blog/2016/03/14/multicast-delegate-in-oc/';
+        var disqus_url = 'http://MrBoog.github.io/blog/2016/03/14/multicast-delegate-in-oc/';
         var disqus_script = 'embed.js';
       
     (function () {

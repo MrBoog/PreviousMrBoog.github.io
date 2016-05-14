@@ -4,7 +4,7 @@
   <title><![CDATA[Category: iOS | HuanLiu's Blog]]></title>
   <link href="http://MrBoog.github.io/blog/categories/ios/atom.xml" rel="self"/>
   <link href="http://MrBoog.github.io/"/>
-  <updated>2016-05-13T20:36:13+08:00</updated>
+  <updated>2016-05-14T21:03:33+08:00</updated>
   <id>http://MrBoog.github.io/</id>
   <author>
     <name><![CDATA[HuanLiu]]></name>
@@ -12,6 +12,37 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Multicast Delegate in Oc]]></title>
+    <link href="http://MrBoog.github.io/blog/2016/03/14/multicast-delegate-in-oc/"/>
+    <updated>2016-03-14T20:52:33+08:00</updated>
+    <id>http://MrBoog.github.io/blog/2016/03/14/multicast-delegate-in-oc</id>
+    <content type="html"><![CDATA[<p>NSNotificationCenter 我们肯定都有使用过，通过发送广播，实现一对多的消息发送。NSNotificationCenter使用起来灵活性特别高，但有时候过度使用反而是NSNotificationCenter 弊端。在项目的设计中，我们也常会思考的一个问题：<strong>限制部分灵活性，以此来交换应用的可读性和可维护性。</strong></p>
+
+<p>NSNotificationCenter 允许应用各种跨层访问，监听者要配合合理使用add、remove等方法，出了问题实在不好跟踪。在某些时刻，需要酌情考虑是否应该使用。</p>
+
+<p>对于一对多的消息发送，其实还有很多办法可以考虑。比如说，我们可以通过<strong>NSProxy 实现消息转发</strong>，将我们普通一对一的delegate模式，改为一对多。</p>
+
+<p>我自己写了个简单的<a href="https://github.com/MrBoog/SafeMulticastDelegate">DEMO</a>方便查看</p>
+
+<p>在目前实现过程中，需要考虑的主要有下面三点：</p>
+
+<p><strong>1. 使用<a href="http://nshipster.com/nshashtable-and-nsmaptable/">NSHashTable</a> 处理循环引用问题</strong></p>
+
+<p>既然是一对多，肯定需要有容器保存delegate指针，出于避免循环引用等问题的考虑，目前使用<code>NSHashTable</code>代替了数组或者字典。</p>
+
+<p><strong>2. 使用message forwarding转发消息</strong></p>
+
+<p><code>-methodSignatureForSelector:</code> 和 <code>-forwardInvocation:</code>两个方法是实现转发的关键，使用<a href="https://developer.apple.com/library/mac/documentation/Cocoa/Reference/Foundation/Classes/NSProxy_Class/">NSProxy</a> 只是因为相对于 NSObject，NSProxy更专注于消息转发，没有其他太多无关的方法。当然也可以使用NSObject来做。</p>
+
+<p><strong>3. 处理 @optional的协议方法 crash问题</strong></p>
+
+<p>协议不可能都是 @required 肯定还有 @optional，在转发中记得处理可能crash的情况。</p>
+
+<p>使用Multicast Delegate，<strong>中间多了一层 protocol 关联</strong>，某种情况下可以解决NSNotificationCenter 跨层带来的过于松散等问题。</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[GCD同步操作之 Barriers Groups Semaphore]]></title>
@@ -752,84 +783,6 @@ NSOperationQueue *queue = [[NSOperationQueue alloc] init];
 <ul>
 <li>operationCount (readonly)：获取队列中还存在的正在执行的、等待执行的任务数量。注意，当任务一旦finished，就会从队列中remove。</li>
 <li>cancelAllOperations：对队列所有的operations，发送<code>cancel</code>消息，将 isCancelled 属性设置为 YES 。如我们之前讨论过的，当operation 的 isExecuting 状态为 NO 时，operation 会被 finished 并从队列中 remove 。如果 isExecuting 状态为 YES ，那么我们自定义的operation，就要手动检测 isCancelled 属性。</li>
-</ul>
-
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Oc 中的 Super]]></title>
-    <link href="http://MrBoog.github.io/blog/2015/05/13/oc-zhong-de-super/"/>
-    <updated>2015-05-13T20:32:29+08:00</updated>
-    <id>http://MrBoog.github.io/blog/2015/05/13/oc-zhong-de-super</id>
-    <content type="html"><![CDATA[<p>我们都知道当使用 self 调用方法时，会从当前类的方法列表中开始找，如果没有，就从父类中再找。当使用 super 时，则从父类的方法列表中开始找，然后调用父类的这个方法。这里 self 代表的是当前调用方法这个类的实例，super 代表父类，但具体是什么，或者是怎么做的呢，我们可以做实验检测一下。</p>
-
-<p>创建一个Oc的类Dog，直接继承于 NSObject，里面有这样一些方法，</p>
-
-<p>```
-&ndash; (void)doEat:(NSString *)food{}</p>
-
-<ul>
-<li>(instancetype)init
-{
-  if (self = [super init]) {
-      NSLog(@&ldquo;%@&rdquo;, [self class]);
-      NSLog(@&ldquo;%@&rdquo;, [super class]);
-      NSLog(@&ldquo;self %@&rdquo;,self);
-      //NSLog(@&ldquo;super %@&rdquo;,super);
-  }
-  return self;
-}
-<code>``
-在初始化方法里，我们分别输出self和super的类。Dog父类是NSObject，那super输出的会是NSObject么？运行后发现其实二者都是输出Dog。同时，self是一个指针可以看到地址，而当我们把上面注释的那句代码打开，编译器会报一个错误</code>Use of undeclared identifier &lsquo;super&rsquo;`，可见super跟self不同的是，它不是当前类的一个参数。</li>
-</ul>
-
-
-<p>在终端中我们使用<code>clang -rewrite-objc Dog.m</code>，将上面代码转换成C，看到 &ndash; doEat:  转成了下面的C函数</p>
-
-<p>```</p>
-
-<pre><code>static void _I_Dog_doEat_(Dog * self, SEL _cmd, NSString *food){}
-</code></pre>
-
-<p>```</p>
-
-<p>在C的方法中可以看到，这个方法里self是作为第一个参数传入的。这也印证了我们的想法，<code>self 是类的隐藏参数</code>，在转换成c后，每个类的实例方法中都会有这样一个参数。</p>
-
-<p>初始化中的NSLog方法，转换成C如下</p>
-
-<p>```</p>
-
-<pre><code>NSLog((NSString *)&amp;__NSConstantStringImpl__var_folders__z_yckwz02x3m1c7_8b6mc8zynm0000gn_T_Dog_ae5b20_mi_0, ((Class (*)(id, SEL))(void *)objc_msgSend)((id)self, sel_registerName("class")));
-NSLog((NSString *)&amp;__NSConstantStringImpl__var_folders__z_yckwz02x3m1c7_8b6mc8zynm0000gn_T_Dog_ae5b20_mi_1, ((Class (*)(__rw_objc_super *, SEL))(void *)objc_msgSendSuper)((__rw_objc_super){(id)self, (id)class_getSuperclass(objc_getClass("Dog"))}, sel_registerName("class")));
-</code></pre>
-
-<p>```</p>
-
-<p>我们看到 self 和 super 调用方法时，分别使用了如下C函数</p>
-
-<p>```</p>
-
-<pre><code>id objc_msgSend(id self, SEL op, ...)
-id objc_msgSendSuper(struct objc_super *super, SEL op, ...)
-</code></pre>
-
-<p>```</p>
-
-<p>所以，其实 super 与 self 不同，<code>不是一个参数，而是一个编译器标识符</code>。由 super 调用的方法，在编译后被转换成 objc_msgSendSuper，其中第一个参数 <a href="https://developer.apple.com/library/mac/documentation/Cocoa/Reference/ObjCRuntimeRef/#//apple_ref/c/tag/objc_super">结构体 objc_super</a> 也是编译器在遇到 super 关键字的时候，生成的。定义如下</p>
-
-<p>```</p>
-
-<pre><code>struct objc_super { id receiver; Class class; };
-</code></pre>
-
-<p>```</p>
-
-<p>所以编译器在遇到 super 时，大体做了两件事</p>
-
-<ul>
-<li>创建 objc_super结构体</li>
-<li>调用 objc_msgSendSuper，向父类方法发送消息。</li>
 </ul>
 
 ]]></content>
