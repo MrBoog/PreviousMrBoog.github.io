@@ -4,7 +4,7 @@
   <title><![CDATA[HuanLiu's Blog]]></title>
   <link href="http://MrBoog.github.io/atom.xml" rel="self"/>
   <link href="http://MrBoog.github.io/"/>
-  <updated>2016-05-14T21:09:25+08:00</updated>
+  <updated>2016-05-19T15:11:48+08:00</updated>
   <id>http://MrBoog.github.io/</id>
   <author>
     <name><![CDATA[HuanLiu]]></name>
@@ -1044,6 +1044,100 @@
 <li>cancelAllOperations：对队列所有的operations，发送<code>cancel</code>消息，将 isCancelled 属性设置为 YES 。如我们之前讨论过的，当operation 的 isExecuting 状态为 NO 时，operation 会被 finished 并从队列中 remove 。如果 isExecuting 状态为 YES ，那么我们自定义的operation，就要手动检测 isCancelled 属性。</li>
 </ul>
 
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[模拟低速网络]]></title>
+    <link href="http://MrBoog.github.io/blog/2015/05/19/mo-ni-di-su-wang-luo/"/>
+    <updated>2015-05-19T15:09:21+08:00</updated>
+    <id>http://MrBoog.github.io/blog/2015/05/19/mo-ni-di-su-wang-luo</id>
+    <content type="html"><![CDATA[<p>之前一直在终端使用 <code>ipfw</code>脚本命令，来模拟低速网络，不过在Yosemite 之后Apple移除了ipfw 命令，<a href="https://discussions.apple.com/thread/6645172?start=0&amp;tstart=0">but now  IPFW is gone, Moving to PF</a>。</p>
+
+<h5>GUI工具:</h5>
+
+<ul>
+<li><p>Charles 网络上介绍的已经很多了，就不再多说了。</p></li>
+<li><p>使用官方提供的<a href="https://developer.apple.com/downloads/?q=Hardware%20IO%20Tools"> Network Link Conditioner</a>。</p></li>
+</ul>
+
+
+<p>这是IO工具包，下载后，双击“Network Link Conditioner.prefPane” 进行安装。</p>
+
+<p>启用后，配置一下very bad network，重新启动模拟器，我们就可以使用调整我们的模拟器网络环境了，模拟低速网络。(目前没办法对特定的地址限速，会降低电脑中所有请求的速度)</p>
+
+<h5>Terminal PF命令：</h5>
+
+<p>当然，如果使用终端，还是可以使用 PF命令，来替换 ipfw，下面是一断脚本</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>
+</span><span class='line'>#!/bin/bash
+</span><span class='line'>
+</span><span class='line'># Reset dummynet to default config
+</span><span class='line'>dnctl -f flush
+</span><span class='line'>
+</span><span class='line'># Compose an addendum to the default config: creates a new anchor
+</span><span class='line'>(cat /etc/pf.conf &&
+</span><span class='line'>echo 'dummynet-anchor "my_anchor"' &&
+</span><span class='line'>echo 'anchor "my_anchor"') | pfctl -q -f -
+</span><span class='line'>
+</span><span class='line'># Configure the new anchor
+</span><span class='line'>cat &lt;&lt;EOF | pfctl -q -a my_anchor -f -
+</span><span class='line'>no dummynet quick on lo0 all
+</span><span class='line'>dummynet out proto tcp from any to any pipe 1
+</span><span class='line'>EOF
+</span><span class='line'>
+</span><span class='line'># Create the dummynet queue
+</span><span class='line'>dnctl pipe 1 config bw 4100byte/s
+</span><span class='line'>
+</span><span class='line'># Activate PF
+</span><span class='line'>pfctl -E
+</span><span class='line'>
+</span><span class='line'># to check that dnctl is properly configured: sudo dnctl list</span></code></pre></td></tr></table></div></figure>
+
+
+<p>检查配置列表</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>sudo dnctl list</span></code></pre></td></tr></table></div></figure>
+
+
+<p>最后的最后。。使用后别忘记重置。。</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>sudo dnctl -f flush
+</span><span class='line'>sudo pfctl -f /etc/pf.conf
+</span><span class='line'>sudo dnctl list
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>如果不起作用，可能是PF默认没有开启，使用 <code>sudo pfctl -E</code> 开启。</p>
 ]]></content>
   </entry>
   
