@@ -162,8 +162,6 @@ Unable to download data from https://ruby.taobao.org/ - SSL_connect returned=1 &
 
 <p>对于一对多的消息发送，其实还有很多办法可以考虑。比如说，我们可以通过<strong>NSProxy 实现消息转发</strong>，将我们普通一对一的delegate模式，改为一对多。</p>
 
-<p><a href="https://github.com/MrBoog/SafeMulticastDelegate">我自己写了个简单的 DEMO方便查看</a></p>
-
 <p>在目前实现过程中，需要考虑的主要有下面三点：</p>
 
 <p><strong>1. 使用<a href="http://nshipster.com/nshashtable-and-nsmaptable/">NSHashTable</a> 处理循环引用问题</strong></p>
@@ -290,6 +288,8 @@ Unable to download data from https://ruby.taobao.org/ - SSL_connect returned=1 &
 <p>协议不可能都是 @required 肯定还有 @optional，在转发中记得处理可能crash的情况。</p>
 
 <p>使用Multicast Delegate，<strong>中间多了一层 protocol 关联</strong>，某种情况下可以解决NSNotificationCenter 跨层带来的过于松散等问题。</p>
+
+<p><a href="https://github.com/MrBoog/SafeMulticastDelegate">DEMO 地址</a></p>
 </div>
   
   

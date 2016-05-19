@@ -4,7 +4,7 @@
   <title><![CDATA[Category: iOS | HuanLiu's Blog]]></title>
   <link href="http://MrBoog.github.io/blog/categories/ios/atom.xml" rel="self"/>
   <link href="http://MrBoog.github.io/"/>
-  <updated>2016-05-19T15:24:31+08:00</updated>
+  <updated>2016-05-19T15:29:13+08:00</updated>
   <id>http://MrBoog.github.io/</id>
   <author>
     <name><![CDATA[HuanLiu]]></name>
@@ -23,8 +23,6 @@
 <p>NSNotificationCenter 允许应用各种跨层访问，监听者要配合合理使用add、remove等方法，出了问题实在不好跟踪。在某些时刻，需要酌情考虑是否应该使用。</p>
 
 <p>对于一对多的消息发送，其实还有很多办法可以考虑。比如说，我们可以通过<strong>NSProxy 实现消息转发</strong>，将我们普通一对一的delegate模式，改为一对多。</p>
-
-<p><a href="https://github.com/MrBoog/SafeMulticastDelegate">我自己写了个简单的 DEMO方便查看</a></p>
 
 <p>在目前实现过程中，需要考虑的主要有下面三点：</p>
 
@@ -112,6 +110,8 @@ return [[self class] instanceMethodSignatureForSelector:@selector(doNothing)];
 <p>协议不可能都是 @required 肯定还有 @optional，在转发中记得处理可能crash的情况。</p>
 
 <p>使用Multicast Delegate，<strong>中间多了一层 protocol 关联</strong>，某种情况下可以解决NSNotificationCenter 跨层带来的过于松散等问题。</p>
+
+<p><a href="https://github.com/MrBoog/SafeMulticastDelegate">DEMO 地址</a></p>
 ]]></content>
   </entry>
   
