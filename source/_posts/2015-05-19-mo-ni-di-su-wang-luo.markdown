@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "模拟低速网络"
+title: "Terminal中模拟低速网络"
 date: 2015-05-19 15:09:21 +0800
 comments: true
 categories: iOS
@@ -13,7 +13,7 @@ categories: iOS
 
 ##### GUI工具:
 
- * Charles 网络上介绍的已经很多了，就不再多说了。
+ * Charles 这个抓包工具网络上介绍的已经很多了，就不再多说了。
 
  * 使用官方提供的[ Network Link Conditioner](https://developer.apple.com/downloads/?q=Hardware%20IO%20Tools)。
 
@@ -24,7 +24,7 @@ categories: iOS
 ##### Terminal PF命令：
 
 
-当然，如果使用终端，还是可以使用 PF命令，来替换 ipfw，下面是一断脚本
+当然，如果使用终端，还是可以使用 PF命令，来替换 ipfw，下面是一段[脚本](https://github.com/MrBoog/Limiting-bandwidth-on-MacOS)
 
 ```
 

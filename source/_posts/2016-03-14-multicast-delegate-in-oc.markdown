@@ -22,9 +22,69 @@ NSNotificationCenter 允许应用各种跨层访问，监听者要配合合理�
 
 既然是一对多，肯定需要有容器保存delegate指针，出于避免循环引用等问题的考虑，目前使用`NSHashTable`代替了数组或者字典。
 
+```
+- (instancetype)init{
+    _delegates = [NSHashTable hashTableWithOptions:NSHashTableWeakMemory];
+    return self;
+}
+
+- (void)addDelegate:(id)delegate{
+    if (delegate != nil) {
+        [_delegates addObject:delegate];
+    }else{
+        NSAssert(NO, @"delegate couldn't be nil");
+    }
+}
+
+- (void)removeDelegate:(id)delegate{
+    [_delegates removeObject:delegate];
+}
+
+- (void)removeAllDelegates{
+    [_delegates removeAllObjects];
+}
+
+```
+
 **2. 使用message forwarding转发消息**
 
 `-methodSignatureForSelector:` 和 `-forwardInvocation:`两个方法是实现转发的关键，使用[NSProxy](https://developer.apple.com/library/mac/documentation/Cocoa/Reference/Foundation/Classes/NSProxy_Class/) 只是因为相对于 NSObject，NSProxy更专注于消息转发，没有其他太多无关的方法。当然也可以使用NSObject来做。
+
+```
+- (NSMethodSignature *)methodSignatureForSelector:(SEL)sel
+{
+    for (id delegate in _delegates) {
+        
+        NSMethodSignature *result = [delegate methodSignatureForSelector:sel];
+        if (result != nil) {
+            return result;
+        }
+    }
+   
+    // This causes a crash...
+    //        return [super methodSignatureForSelector:sel];
+    return [[self class] instanceMethodSignatureForSelector:@selector(doNothing)];
+}
+
+- (void)forwardInvocation:(NSInvocation *)invocation
+{
+    SEL sel = invocation.selector;
+    
+    for (id delegate in _delegates) {
+        if ([delegate respondsToSelector:sel]) {
+            [invocation invokeWithTarget:delegate];
+        }else{
+            
+            // This causes a crash...
+            //        [super forwardInvocation:invocation];
+            [self doNothing];
+        }
+    }
+}
+
+- (void)doNothing{
+}
+```
 
 **3. 处理 @optional的协议方法 crash问题**
 
