@@ -14,8 +14,6 @@ NSNotificationCenter 允许应用各种跨层访问，监听者要配合合理�
 
 对于一对多的消息发送，其实还有很多办法可以考虑。比如说，我们可以通过**NSProxy 实现消息转发**，将我们普通一对一的delegate模式，改为一对多。
 
-[我自己写了个简单的 DEMO方便查看](https://github.com/MrBoog/SafeMulticastDelegate)
-
 在目前实现过程中，需要考虑的主要有下面三点：
 
 **1. 使用[NSHashTable](http://nshipster.com/nshashtable-and-nsmaptable/) 处理循环引用问题**
@@ -92,3 +90,4 @@ NSNotificationCenter 允许应用各种跨层访问，监听者要配合合理�
 
 使用Multicast Delegate，**中间多了一层 protocol 关联**，某种情况下可以解决NSNotificationCenter 跨层带来的过于松散等问题。
 
+[DEMO 地址](https://github.com/MrBoog/SafeMulticastDelegate)
