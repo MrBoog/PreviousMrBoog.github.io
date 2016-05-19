@@ -4,7 +4,7 @@
   <title><![CDATA[Category: iOS | HuanLiu's Blog]]></title>
   <link href="http://MrBoog.github.io/blog/categories/ios/atom.xml" rel="self"/>
   <link href="http://MrBoog.github.io/"/>
-  <updated>2016-05-19T15:11:48+08:00</updated>
+  <updated>2016-05-19T15:24:31+08:00</updated>
   <id>http://MrBoog.github.io/</id>
   <author>
     <name><![CDATA[HuanLiu]]></name>
@@ -32,9 +32,80 @@
 
 <p>既然是一对多，肯定需要有容器保存delegate指针，出于避免循环引用等问题的考虑，目前使用<code>NSHashTable</code>代替了数组或者字典。</p>
 
+<p>```
+&ndash; (instancetype)init{</p>
+
+<pre><code>_delegates = [NSHashTable hashTableWithOptions:NSHashTableWeakMemory];
+return self;
+</code></pre>
+
+<p>}</p>
+
+<ul>
+<li><p>(void)addDelegate:(id)delegate{
+  if (delegate != nil) {
+      [_delegates addObject:delegate];
+  }else{
+      NSAssert(NO, @&ldquo;delegate couldn&rsquo;t be nil&rdquo;);
+  }
+}</p></li>
+<li><p>(void)removeDelegate:(id)delegate{
+  [_delegates removeObject:delegate];
+}</p></li>
+<li><p>(void)removeAllDelegates{
+  [_delegates removeAllObjects];
+}</p></li>
+</ul>
+
+
+<p>```</p>
+
 <p><strong>2. 使用message forwarding转发消息</strong></p>
 
 <p><code>-methodSignatureForSelector:</code> 和 <code>-forwardInvocation:</code>两个方法是实现转发的关键，使用<a href="https://developer.apple.com/library/mac/documentation/Cocoa/Reference/Foundation/Classes/NSProxy_Class/">NSProxy</a> 只是因为相对于 NSObject，NSProxy更专注于消息转发，没有其他太多无关的方法。当然也可以使用NSObject来做。</p>
+
+<p>```
+&ndash; (NSMethodSignature *)methodSignatureForSelector:(SEL)sel
+{</p>
+
+<pre><code>for (id delegate in _delegates) {
+
+    NSMethodSignature *result = [delegate methodSignatureForSelector:sel];
+    if (result != nil) {
+        return result;
+    }
+}
+
+// This causes a crash...
+//        return [super methodSignatureForSelector:sel];
+return [[self class] instanceMethodSignatureForSelector:@selector(doNothing)];
+</code></pre>
+
+<p>}</p>
+
+<ul>
+<li><p>(void)forwardInvocation:(NSInvocation *)invocation
+{
+  SEL sel = invocation.selector;</p>
+
+<p>  for (id delegate in _delegates) {
+      if ([delegate respondsToSelector:sel]) {
+          [invocation invokeWithTarget:delegate];
+      }else{</p>
+
+<pre><code>      // This causes a crash...
+      //        [super forwardInvocation:invocation];
+      [self doNothing];
+  }
+</code></pre>
+
+<p>  }
+}</p></li>
+<li><p>(void)doNothing{
+}
+```</p></li>
+</ul>
+
 
 <p><strong>3. 处理 @optional的协议方法 crash问题</strong></p>
 

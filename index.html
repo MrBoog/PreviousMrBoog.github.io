@@ -170,9 +170,120 @@ Unable to download data from https://ruby.taobao.org/ - SSL_connect returned=1 &
 
 <p>既然是一对多，肯定需要有容器保存delegate指针，出于避免循环引用等问题的考虑，目前使用<code>NSHashTable</code>代替了数组或者字典。</p>
 
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>- (instancetype)init{
+</span><span class='line'>    _delegates = [NSHashTable hashTableWithOptions:NSHashTableWeakMemory];
+</span><span class='line'>    return self;
+</span><span class='line'>}
+</span><span class='line'>
+</span><span class='line'>- (void)addDelegate:(id)delegate{
+</span><span class='line'>    if (delegate != nil) {
+</span><span class='line'>        [_delegates addObject:delegate];
+</span><span class='line'>    }else{
+</span><span class='line'>        NSAssert(NO, @"delegate couldn't be nil");
+</span><span class='line'>    }
+</span><span class='line'>}
+</span><span class='line'>
+</span><span class='line'>- (void)removeDelegate:(id)delegate{
+</span><span class='line'>    [_delegates removeObject:delegate];
+</span><span class='line'>}
+</span><span class='line'>
+</span><span class='line'>- (void)removeAllDelegates{
+</span><span class='line'>    [_delegates removeAllObjects];
+</span><span class='line'>}
+</span></code></pre></td></tr></table></div></figure>
+
+
 <p><strong>2. 使用message forwarding转发消息</strong></p>
 
 <p><code>-methodSignatureForSelector:</code> 和 <code>-forwardInvocation:</code>两个方法是实现转发的关键，使用<a href="https://developer.apple.com/library/mac/documentation/Cocoa/Reference/Foundation/Classes/NSProxy_Class/">NSProxy</a> 只是因为相对于 NSObject，NSProxy更专注于消息转发，没有其他太多无关的方法。当然也可以使用NSObject来做。</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>- (NSMethodSignature *)methodSignatureForSelector:(SEL)sel
+</span><span class='line'>{
+</span><span class='line'>    for (id delegate in _delegates) {
+</span><span class='line'>        
+</span><span class='line'>        NSMethodSignature *result = [delegate methodSignatureForSelector:sel];
+</span><span class='line'>        if (result != nil) {
+</span><span class='line'>            return result;
+</span><span class='line'>        }
+</span><span class='line'>    }
+</span><span class='line'>   
+</span><span class='line'>    // This causes a crash...
+</span><span class='line'>    //        return [super methodSignatureForSelector:sel];
+</span><span class='line'>    return [[self class] instanceMethodSignatureForSelector:@selector(doNothing)];
+</span><span class='line'>}
+</span><span class='line'>
+</span><span class='line'>- (void)forwardInvocation:(NSInvocation *)invocation
+</span><span class='line'>{
+</span><span class='line'>    SEL sel = invocation.selector;
+</span><span class='line'>    
+</span><span class='line'>    for (id delegate in _delegates) {
+</span><span class='line'>        if ([delegate respondsToSelector:sel]) {
+</span><span class='line'>            [invocation invokeWithTarget:delegate];
+</span><span class='line'>        }else{
+</span><span class='line'>            
+</span><span class='line'>            // This causes a crash...
+</span><span class='line'>            //        [super forwardInvocation:invocation];
+</span><span class='line'>            [self doNothing];
+</span><span class='line'>        }
+</span><span class='line'>    }
+</span><span class='line'>}
+</span><span class='line'>
+</span><span class='line'>- (void)doNothing{
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
 
 <p><strong>3. 处理 @optional的协议方法 crash问题</strong></p>
 
@@ -1286,7 +1397,7 @@ Unable to download data from https://ruby.taobao.org/ - SSL_connect returned=1 &
       
   <header>
     
-      <h1 class="entry-title"><a href="/blog/2015/05/19/mo-ni-di-su-wang-luo/">模拟低速网络</a></h1>
+      <h1 class="entry-title"><a href="/blog/2015/05/19/mo-ni-di-su-wang-luo/">Terminal中模拟低速网络</a></h1>
     
     
       <p class="meta">
@@ -1317,7 +1428,7 @@ Unable to download data from https://ruby.taobao.org/ - SSL_connect returned=1 &
 <h5>GUI工具:</h5>
 
 <ul>
-<li><p>Charles 网络上介绍的已经很多了，就不再多说了。</p></li>
+<li><p>Charles 这个抓包工具网络上介绍的已经很多了，就不再多说了。</p></li>
 <li><p>使用官方提供的<a href="https://developer.apple.com/downloads/?q=Hardware%20IO%20Tools"> Network Link Conditioner</a>。</p></li>
 </ul>
 
@@ -1328,7 +1439,7 @@ Unable to download data from https://ruby.taobao.org/ - SSL_connect returned=1 &
 
 <h5>Terminal PF命令：</h5>
 
-<p>当然，如果使用终端，还是可以使用 PF命令，来替换 ipfw，下面是一断脚本</p>
+<p>当然，如果使用终端，还是可以使用 PF命令，来替换 ipfw，下面是一段<a href="https://github.com/MrBoog/Limiting-bandwidth-on-MacOS">脚本</a></p>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
