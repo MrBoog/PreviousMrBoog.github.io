@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "Oc 中的 super"
+title: "'super' keyword in Oc"
 date: 2015-05-13 20:32:29 +0800
 comments: true
 categories: iOS
