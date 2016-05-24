@@ -5,8 +5,8 @@
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <title>HuanLiu's Blog</title>
-  <meta name="author" content="HuanLiu">
+  <title>MrBoog's Blog</title>
+  <meta name="author" content="MrBoog">
 
   
   <meta name="description" content="换电脑重新装pods的时候报错，其实是gem报错了。 在执行 gem install cocoapods 的时候，遇到了下面的错误， 1
@@ -22,7 +22,7 @@ Unable to download data from https://ruby.taobao.org/ - SSL_connect returned=1 &
   <link rel="canonical" href="http://MrBoog.github.io">
   <link href="/favicon.png" rel="icon">
   <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
-  <link href="/atom.xml" rel="alternate" title="HuanLiu's Blog" type="application/atom+xml">
+  <link href="/atom.xml" rel="alternate" title="MrBoog's Blog" type="application/atom+xml">
   <script src="/javascripts/modernizr-2.0.js"></script>
   <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
   <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
@@ -37,9 +37,9 @@ Unable to download data from https://ruby.taobao.org/ - SSL_connect returned=1 &
 
 <body   >
   <header role="banner"><hgroup>
-  <h1><a href="/">HuanLiu's Blog</a></h1>
+  <h1><a href="/">MrBoog's Blog</a></h1>
   
-    <h2>Keep looking. don't settle. --Steve Jobs</h2>
+    <h2>Keep looking. don't settle.</h2>
   
 </hgroup>
 
@@ -1397,6 +1397,128 @@ Unable to download data from https://ruby.taobao.org/ - SSL_connect returned=1 &
       
   <header>
     
+      <h1 class="entry-title"><a href="/blog/2015/05/24/kvc-collection-operators-in-oc/">KVC Collection Operators in Oc</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2015-05-24T16:04:31+08:00" pubdate data-updated="true">May 24<span>th</span>, 2015</time>
+        
+           | <a href="/blog/2015/05/24/kvc-collection-operators-in-oc/#disqus_thread"
+             data-disqus-identifier="http://MrBoog.github.io/blog/2015/05/24/kvc-collection-operators-in-oc/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p><a href="https://developer.apple.com/library/mac/documentation/Cocoa/Conceptual/KeyValueCoding/Articles/CollectionOperators.html#//apple_ref/doc/uid/20002176-BAJEAIEE">KVC的集合运算符</a>是一些特定的，以@符号作为前缀的字符串，可以作为key path参数传入<strong>valueForKeyPath:</strong>方法中，以完成一些特定的便捷操作，如查找最大值，最小值，平均值等等。</p>
+
+<blockquote><p>集合运算符，除了支持常见的集合NSArray、NSSet、NSDictionary以外，NSPointerArray、NSHashTable、NSMapTable应该也是支持的。</p></blockquote>
+
+<p>例如，下面是平时我们计算一个数组里Product的price属性的平均值的方法</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>double total = 0.0;
+</span><span class='line'>for (Product *product in productsArray) {
+</span><span class='line'>  total += [product.price doubleValue];
+</span><span class='line'>}
+</span><span class='line'>double average = total / [productsArray count];</span></code></pre></td></tr></table></div></figure>
+
+
+<p>使用KVC的集合运算符，可以用一句话来改写</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>NSNumber *priceAverage = [productsArray valueForKeyPath:@"@avg.price"];
+</span></code></pre></td></tr></table></div></figure>
+
+
+<hr />
+
+<p>按照苹果的文档，KVC集合运算符被分为下面三类</p>
+
+<h3>1.Simple Collection Operators</h3>
+
+<p>为集合提供一些便捷运算。返回的是strings, number, 或者 dates。  <br/>
+共有5种操作：</p>
+
+<ul>
+<li><p>@avg : 返回集合中对象某个属性平均值，NSNumber类型</p></li>
+<li><p>@count : 返回集合中对象总数，NSNumber类型</p></li>
+<li><p>@max、@min : 返回集合中对象某个属性最大、小值，实际是调用<strong>compare: </strong>方法比较，类型根据属性而定</p></li>
+<li><p>@sum : 返回集合中对象某个属性之和，每个属性都被转换为double后进行计算，NSNumber类型</p></li>
+</ul>
+
+
+<blockquote><p>如果以上集合中的对象不是自定义对象，而是Cocoa提供的类比如NSNumber，我们可以self代替key path，像这样使用：[@[@(1), @(2), @(3)] valueForKeyPath:@&ldquo;@max.self&rdquo;]</p></blockquote>
+
+<hr />
+
+<h3>2.Object Operators</h3>
+
+<p>对象操作符是很有用的操作，获取集合中对象某一个属性组成的数组。返回NSArray。</p>
+
+<ul>
+<li><p>@distinctUnionOfObjects : 返回结果去重。</p></li>
+<li><p>@unionOfObjects : 返会结果不去重。</p></li>
+</ul>
+
+
+<p>例如 获取集合下所有Product的name属性的集合</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>NSArray *names = [productsArray valueForKeyPath:@"@unionOfObjects.name"];
+</span><span class='line'>
+</span><span class='line'>//去重
+</span><span class='line'>NSArray *distinctNames = [productsArray valueForKeyPath:@"@distinctUnionOfObjects.name"];</span></code></pre></td></tr></table></div></figure>
+
+
+<hr />
+
+<h3>3.Array and Set Operators</h3>
+
+<p>类似于Object Operators的作用。不过是作用于嵌套集合。从上面的例子来说，就是支持从包含多个productsArray的数组中获取Product的name属性的集合。返回的是一个数组或者集合。</p>
+
+<ul>
+<li><p>@distinctUnionOfArrays : 去重，返回NSArray</p></li>
+<li><p>@unionOfArrays : 不去重，返回NSArray</p></li>
+<li><p>@distinctUnionOfSets : 去重，返回NSSet。NSSet不能包含重复数据，所以只有这一个方法。</p></li>
+</ul>
+
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>NSArray *distinctNames = [@[productsArray1,productsArray2] valueForKeyPath:@"@distinctUnionOfArrays.name"];</span></code></pre></td></tr></table></div></figure>
+
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
       <h1 class="entry-title"><a href="/blog/2015/05/19/mo-ni-di-su-wang-luo/">Terminal中模拟低速网络</a></h1>
     
     
@@ -1521,7 +1643,7 @@ Unable to download data from https://ruby.taobao.org/ - SSL_connect returned=1 &
       
   <header>
     
-      <h1 class="entry-title"><a href="/blog/2015/05/13/oc-zhong-de-super/">Oc 中的 Super</a></h1>
+      <h1 class="entry-title"><a href="/blog/2015/05/13/oc-zhong-de-super/">&#8216;Super&#8217; Keyword in Oc</a></h1>
     
     
       <p class="meta">
@@ -1742,111 +1864,6 @@ Unable to download data from https://ruby.taobao.org/ - SSL_connect returned=1 &
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2015/02/10/shi-yong-javascriptcore-er/">使用 JavaScriptCore <二></a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2015-02-10T17:04:29+08:00" pubdate data-updated="true">Feb 10<span>th</span>, 2015</time>
-        
-           | <a href="/blog/2015/02/10/shi-yong-javascriptcore-er/#disqus_thread"
-             data-disqus-identifier="http://MrBoog.github.io/blog/2015/02/10/shi-yong-javascriptcore-er/">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><h4>当JSExport 遇见 class_addProtocol</h4>
-
-<p>之前我们已经大致了解了 JavaScriptCore的基础功能。下面我们想象一个这样的场景：</p>
-
-<p>如果，我需要在JS中设置某个UIView的backgroundColor，那么我可以总么做呢？我们知道以下两点：</p>
-
-<ul>
-<li><p>通过创建继承于 JSExport 的协议，可以让Oc暴漏给JS使用。</p></li>
-<li><p>通过 Runtime 的 class_addProtocol，我们可以给已经存在类添加协议。</p></li>
-</ul>
-
-
-<p>这样，我们是不是可以给UIView动态添加继承于 JSExport 的协议，协议里包含backgroundColor属性的setter和getter方法。是不是JS中就可以调用了呢？</p>
-
-<p>代码如下：</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>
-</span><span class='line'>  #import &lt;objc/runtime.h&gt;
-</span><span class='line'>  #import &lt;JavaScriptCore/JavaScriptCore.h&gt;
-</span><span class='line'>  
-</span><span class='line'>  
-</span><span class='line'>  @protocol UIViewExport &lt;JSExport&gt;
-</span><span class='line'>      - (void)setBackgroundColor:(UIColor *)backgroundColor;
-</span><span class='line'>      - (UIColor *)backgroundColor;
-</span><span class='line'>  @end
-</span><span class='line'>  
-</span><span class='line'>  
-</span><span class='line'>  
-</span><span class='line'>  - (void)viewDidLoad {
-</span><span class='line'>      [super viewDidLoad];
-</span><span class='line'>      
-</span><span class='line'>      class_addProtocol([UIView class],   @protocol(UIViewExport));
-</span><span class='line'>  
-</span><span class='line'>
-</span><span class='line'>      JSContext *context = [[JSContext alloc] init];
-</span><span class='line'>      context[@"view"] = self.view;   
-</span><span class='line'>      context[@"color"] = [UIColor blueColor];
-</span><span class='line'>    
-</span><span class='line'>      [context evaluateScript:@" view.setBackgroundColor(color) "];
-</span><span class='line'>    }</span></code></pre></td></tr></table></div></figure>
-
-
-
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/2/">&larr; Older</a>
@@ -1894,7 +1911,7 @@ Unable to download data from https://ruby.taobao.org/ - SSL_connect returned=1 &
     </div>
   </div>
   <footer role="contentinfo"><p>
-  Copyright &copy; 2016 - HuanLiu -
+  Copyright &copy; 2016 - MrBoog -
   <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
 </p>
 

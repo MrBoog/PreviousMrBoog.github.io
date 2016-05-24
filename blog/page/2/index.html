@@ -5,11 +5,11 @@
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <title>HuanLiu's Blog</title>
-  <meta name="author" content="HuanLiu">
+  <title>MrBoog's Blog</title>
+  <meta name="author" content="MrBoog">
 
   
-  <meta name="description" content="随着iOS7 JavaScript引擎的开放，JS在移动端使用场景越来越多。之前，要想在Oc中调用Js，不可避免要使用webview，JavaScriptCore是可以不依托于webview的。比如当下比较火的 ReactNative、JSPatch 都有应用这个库。 &hellip;">
+  <meta name="description" content="当JSExport 遇见 class_addProtocol 之前我们已经大致了解了 JavaScriptCore的基础功能。下面我们想象一个这样的场景： 如果，我需要在JS中设置某个UIView的backgroundColor，那么我可以总么做呢？我们知道以下两点： 通过创建继承于 &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -21,7 +21,7 @@
   <link rel="canonical" href="http://MrBoog.github.io/blog/page/2">
   <link href="/favicon.png" rel="icon">
   <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
-  <link href="/atom.xml" rel="alternate" title="HuanLiu's Blog" type="application/atom+xml">
+  <link href="/atom.xml" rel="alternate" title="MrBoog's Blog" type="application/atom+xml">
   <script src="/javascripts/modernizr-2.0.js"></script>
   <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
   <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
@@ -36,9 +36,9 @@
 
 <body   >
   <header role="banner"><hgroup>
-  <h1><a href="/">HuanLiu's Blog</a></h1>
+  <h1><a href="/">MrBoog's Blog</a></h1>
   
-    <h2>Keep looking. don't settle. --Steve Jobs</h2>
+    <h2>Keep looking. don't settle.</h2>
   
 </hgroup>
 
@@ -65,6 +65,111 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2015/02/10/shi-yong-javascriptcore-er/">使用 JavaScriptCore <二></a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2015-02-10T17:04:29+08:00" pubdate data-updated="true">Feb 10<span>th</span>, 2015</time>
+        
+           | <a href="/blog/2015/02/10/shi-yong-javascriptcore-er/#disqus_thread"
+             data-disqus-identifier="http://MrBoog.github.io/blog/2015/02/10/shi-yong-javascriptcore-er/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h4>当JSExport 遇见 class_addProtocol</h4>
+
+<p>之前我们已经大致了解了 JavaScriptCore的基础功能。下面我们想象一个这样的场景：</p>
+
+<p>如果，我需要在JS中设置某个UIView的backgroundColor，那么我可以总么做呢？我们知道以下两点：</p>
+
+<ul>
+<li><p>通过创建继承于 JSExport 的协议，可以让Oc暴漏给JS使用。</p></li>
+<li><p>通过 Runtime 的 class_addProtocol，我们可以给已经存在类添加协议。</p></li>
+</ul>
+
+
+<p>这样，我们是不是可以给UIView动态添加继承于 JSExport 的协议，协议里包含backgroundColor属性的setter和getter方法。是不是JS中就可以调用了呢？</p>
+
+<p>代码如下：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>
+</span><span class='line'>  #import &lt;objc/runtime.h&gt;
+</span><span class='line'>  #import &lt;JavaScriptCore/JavaScriptCore.h&gt;
+</span><span class='line'>  
+</span><span class='line'>  
+</span><span class='line'>  @protocol UIViewExport &lt;JSExport&gt;
+</span><span class='line'>      - (void)setBackgroundColor:(UIColor *)backgroundColor;
+</span><span class='line'>      - (UIColor *)backgroundColor;
+</span><span class='line'>  @end
+</span><span class='line'>  
+</span><span class='line'>  
+</span><span class='line'>  
+</span><span class='line'>  - (void)viewDidLoad {
+</span><span class='line'>      [super viewDidLoad];
+</span><span class='line'>      
+</span><span class='line'>      class_addProtocol([UIView class],   @protocol(UIViewExport));
+</span><span class='line'>  
+</span><span class='line'>
+</span><span class='line'>      JSContext *context = [[JSContext alloc] init];
+</span><span class='line'>      context[@"view"] = self.view;   
+</span><span class='line'>      context[@"color"] = [UIColor blueColor];
+</span><span class='line'>    
+</span><span class='line'>      [context evaluateScript:@" view.setBackgroundColor(color) "];
+</span><span class='line'>    }</span></code></pre></td></tr></table></div></figure>
+
+
+
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -1167,7 +1272,7 @@ cd /,到根目录下，在根目录的Library/WebServer/Documents/里面就是�
     </div>
   </div>
   <footer role="contentinfo"><p>
-  Copyright &copy; 2016 - HuanLiu -
+  Copyright &copy; 2016 - MrBoog -
   <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
 </p>
 

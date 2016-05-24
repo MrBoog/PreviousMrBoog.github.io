@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
 
-  <title><![CDATA[Category: Syntax | HuanLiu's Blog]]></title>
+  <title><![CDATA[Category: Syntax | MrBoog's Blog]]></title>
   <link href="http://MrBoog.github.io/blog/categories/syntax/atom.xml" rel="self"/>
   <link href="http://MrBoog.github.io/"/>
-  <updated>2016-05-19T15:29:13+08:00</updated>
+  <updated>2016-05-24T16:09:37+08:00</updated>
   <id>http://MrBoog.github.io/</id>
   <author>
-    <name><![CDATA[HuanLiu]]></name>
+    <name><![CDATA[MrBoog]]></name>
     
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
