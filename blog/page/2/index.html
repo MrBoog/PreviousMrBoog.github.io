@@ -9,7 +9,7 @@
   <meta name="author" content="MrBoog">
 
   
-  <meta name="description" content="当JSExport 遇见 class_addProtocol 之前我们已经大致了解了 JavaScriptCore的基础功能。下面我们想象一个这样的场景： 如果，我需要在JS中设置某个UIView的backgroundColor，那么我可以总么做呢？我们知道以下两点： 通过创建继承于 &hellip;">
+  <meta name="description" content="makeObjectsPerformSelector 方法 当我们需要对NSArray 或者 NSSet里面的对象，执行同一个操作的时候，我们首先想到的可能是 for 循环。其实对于NSArray 和 NSSet 都有个一简便的方法: makeObjectsPerformSelector:， &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -65,6 +65,123 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2015/04/07/makeobjectsperformselector-fang-fa/">makeObjectsPerformSelector 方法</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2015-04-07T11:25:28+08:00" pubdate data-updated="true">Apr 7<span>th</span>, 2015</time>
+        
+           | <a href="/blog/2015/04/07/makeobjectsperformselector-fang-fa/#disqus_thread"
+             data-disqus-identifier="http://MrBoog.github.io/blog/2015/04/07/makeobjectsperformselector-fang-fa/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h3>makeObjectsPerformSelector 方法</h3>
+
+<p>当我们需要对NSArray 或者 NSSet里面的对象，执行同一个操作的时候，我们首先想到的可能是 for 循环。其实对于NSArray 和 NSSet 都有个一简便的方法:</p>
+
+<p><code>makeObjectsPerformSelector:</code>，数组里面的元素同时执行某个 selector。<code>makeObjectsPerformSelector:withObject:</code>可以带一个参数。例如移除某个视图的所有subview，只要一句话：</p>
+
+<p> <code>
+ [self.subviews makeObjectsPerformSelector:@selector(removeFromSuperview)];
+</code></p>
+
+<hr />
+
+<p> 既然提到了循环，我们就总结一下，数组中其他几种常用的循环方式：</p>
+
+<h4>for in</h4>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>for (id obj in array){
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<h4>Block Enumeration</h4>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>[array enumerateObjectsUsingBlock: ^(id obj, NSUInteger idx, BOOL *stop) {
+</span><span class='line'>    
+</span><span class='line'>}];
+</span><span class='line'>
+</span><span class='line'>//Concurrent:
+</span><span class='line'>[array enumerateObjectsWithOptions: NSEnumerationConcurrent usingBlock: ^(id obj, NSUInteger idx, BOOL *stop) {
+</span><span class='line'>    
+</span><span class='line'>}];</span></code></pre></td></tr></table></div></figure>
+
+
+<p></p>
+
+<h4>GCD APPLY</h4>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>dispatch_queue_t queue = dispatch_get_global_queue(0, 0);
+</span><span class='line'>
+</span><span class='line'>//sync:
+</span><span class='line'>dispatch_apply([array count], queue, ^(size_t idx) {
+</span><span class='line'>    id obj = [array objectAtIndex: idx];
+</span><span class='line'>    
+</span><span class='line'>});
+</span><span class='line'>
+</span><span class='line'>//Async:
+</span><span class='line'>dispatch_async(queue, ^(void) {
+</span><span class='line'>    dispatch_apply([array count], queue, ^(size_t idx) {
+</span><span class='line'>        id obj = [array objectAtIndex: idx];
+</span><span class='line'>        
+</span><span class='line'>    });
+</span><span class='line'>});</span></code></pre></td></tr></table></div></figure>
+
+
+<p></p>
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -1240,6 +1357,10 @@ cd /,到根目录下，在根目录的Library/WebServer/Documents/里面就是�
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2016/06/22/class-cluster/">Class Cluster</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2016/04/20/gem-source-geng-huan/">Gem Source 更换</a>
       </li>
     
@@ -1253,10 +1374,6 @@ cd /,到根目录下，在根目录的Library/WebServer/Documents/里面就是�
     
       <li class="post">
         <a href="/blog/2015/12/14/gcd-part-1/">GCD 同步与异步 串行与并行</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2015/11/11/helloreactnative/">Hello ReactNative</a>
       </li>
     
   </ul>

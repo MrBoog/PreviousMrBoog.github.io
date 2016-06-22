@@ -9,8 +9,7 @@
   <meta name="author" content="MrBoog">
 
   
-  <meta name="description" content="换电脑重新装pods的时候报错，其实是gem报错了。 在执行 gem install cocoapods 的时候，遇到了下面的错误， 1
-Unable to download data from https://ruby.taobao.org/ - SSL_connect returned=1 &hellip;">
+  <meta name="description" content="Class cluster，类簇，这是苹果对抽象工厂模式一种应用，在苹果的Framework中使用广泛，是定义了相同的接口，并提供相同功能的一组类的集合。类簇会有一个公共抽象超类，比如NSString,NSArray,NSNumber,NSDictionary等等，来完成实例化一个具体的私有子类。 &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -66,6 +65,78 @@ Unable to download data from https://ruby.taobao.org/ - SSL_connect returned=1 &
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2016/06/22/class-cluster/">Class Cluster</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2016-06-22T20:29:41+08:00" pubdate data-updated="true">Jun 22<span>nd</span>, 2016</time>
+        
+           | <a href="/blog/2016/06/22/class-cluster/#disqus_thread"
+             data-disqus-identifier="http://MrBoog.github.io/blog/2016/06/22/class-cluster/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>Class cluster，类簇，这是苹果对抽象工厂模式一种应用，在苹果的Framework中使用广泛，是定义了相同的接口，并提供相同功能的一组类的集合。类簇会有一个公共抽象超类，比如NSString,NSArray,NSNumber,NSDictionary等等，来完成实例化一个具体的私有子类。对于使用者来说，只需要知道有公共超类各种API的作用就可以，不需要知道，超类背后子类的实际实现。</p>
+
+<h5>self = [super init]</h5>
+
+<p>我们在初始化的时候，为什么super init调用过后，会赋值给self呢？因为系统有很多时候使用了类簇，所以这样做防止产生的私有类和self不匹配。<code>实例的isa指针终究应该指向这个私有类，而不是当前的超类。</code>  <br/>
+这样在发送消息的时候，self才能找到真正的需要执行的私有类的方法。</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>id objc_msgSend(id self, SEL op, ...)</span></code></pre></td></tr></table></div></figure>
+
+
+<h5>superclass</h5>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>NSArray *array = @[];
+</span><span class='line'>NSLog(@"%@",array.superclass);               //NSArray
+</span><span class='line'>NSLog(@"%@",NSStringFromClass(array.class)); //__NSArrayI</span></code></pre></td></tr></table></div></figure>
+
+
+<p>对于类簇中的超类，比如NSArray，调用superclass就会发现，他的superclass才是真正的NSArray。</p>
+
+<h5>isMemberOfClass</h5>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>NSLog(@"%d",[array isMemberOfClass:[NSArray class]]); //0
+</span><span class='line'>NSLog(@"%d",[array isKindOfClass:[NSArray class]]);   //1</span></code></pre></td></tr></table></div></figure>
+
+
+<p>通过上面的输出同样证明了苹果的类簇利用了多态，通过子类化公共类来实现。
+私有子类的实现，隐藏在簇的内部，不能被直接调用。这样公共类在使用中，实际上存放在内存中的是隐藏在类簇中的某个私有实例。 <br/>
+这样的好处很明显，针对类簇，调用者只需要简单的使用超类提供的API即可。这样NSNumber根据数据不同的类型，而有多种不同的子类化的NSNumber，NSArray根据存储策略不同也有不同的NSArray，而调用者却可以根本不用注意这些。</p>
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -1747,123 +1818,6 @@ Unable to download data from https://ruby.taobao.org/ - SSL_connect returned=1 &
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2015/04/07/makeobjectsperformselector-fang-fa/">makeObjectsPerformSelector 方法</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2015-04-07T11:25:28+08:00" pubdate data-updated="true">Apr 7<span>th</span>, 2015</time>
-        
-           | <a href="/blog/2015/04/07/makeobjectsperformselector-fang-fa/#disqus_thread"
-             data-disqus-identifier="http://MrBoog.github.io/blog/2015/04/07/makeobjectsperformselector-fang-fa/">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><h3>makeObjectsPerformSelector 方法</h3>
-
-<p>当我们需要对NSArray 或者 NSSet里面的对象，执行同一个操作的时候，我们首先想到的可能是 for 循环。其实对于NSArray 和 NSSet 都有个一简便的方法:</p>
-
-<p><code>makeObjectsPerformSelector:</code>，数组里面的元素同时执行某个 selector。<code>makeObjectsPerformSelector:withObject:</code>可以带一个参数。例如移除某个视图的所有subview，只要一句话：</p>
-
-<p> <code>
- [self.subviews makeObjectsPerformSelector:@selector(removeFromSuperview)];
-</code></p>
-
-<hr />
-
-<p> 既然提到了循环，我们就总结一下，数组中其他几种常用的循环方式：</p>
-
-<h4>for in</h4>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>for (id obj in array){
-</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
-
-
-<h4>Block Enumeration</h4>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>[array enumerateObjectsUsingBlock: ^(id obj, NSUInteger idx, BOOL *stop) {
-</span><span class='line'>    
-</span><span class='line'>}];
-</span><span class='line'>
-</span><span class='line'>//Concurrent:
-</span><span class='line'>[array enumerateObjectsWithOptions: NSEnumerationConcurrent usingBlock: ^(id obj, NSUInteger idx, BOOL *stop) {
-</span><span class='line'>    
-</span><span class='line'>}];</span></code></pre></td></tr></table></div></figure>
-
-
-<p></p>
-
-<h4>GCD APPLY</h4>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>dispatch_queue_t queue = dispatch_get_global_queue(0, 0);
-</span><span class='line'>
-</span><span class='line'>//sync:
-</span><span class='line'>dispatch_apply([array count], queue, ^(size_t idx) {
-</span><span class='line'>    id obj = [array objectAtIndex: idx];
-</span><span class='line'>    
-</span><span class='line'>});
-</span><span class='line'>
-</span><span class='line'>//Async:
-</span><span class='line'>dispatch_async(queue, ^(void) {
-</span><span class='line'>    dispatch_apply([array count], queue, ^(size_t idx) {
-</span><span class='line'>        id obj = [array objectAtIndex: idx];
-</span><span class='line'>        
-</span><span class='line'>    });
-</span><span class='line'>});</span></code></pre></td></tr></table></div></figure>
-
-
-<p></p>
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/2/">&larr; Older</a>
@@ -1879,6 +1833,10 @@ Unable to download data from https://ruby.taobao.org/ - SSL_connect returned=1 &
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2016/06/22/class-cluster/">Class Cluster</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2016/04/20/gem-source-geng-huan/">Gem Source 更换</a>
       </li>
     
@@ -1892,10 +1850,6 @@ Unable to download data from https://ruby.taobao.org/ - SSL_connect returned=1 &
     
       <li class="post">
         <a href="/blog/2015/12/14/gcd-part-1/">GCD 同步与异步 串行与并行</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2015/11/11/helloreactnative/">Hello ReactNative</a>
       </li>
     
   </ul>

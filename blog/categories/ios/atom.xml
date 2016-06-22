@@ -4,7 +4,7 @@
   <title><![CDATA[Category: iOS | MrBoog's Blog]]></title>
   <link href="http://MrBoog.github.io/blog/categories/ios/atom.xml" rel="self"/>
   <link href="http://MrBoog.github.io/"/>
-  <updated>2016-05-24T16:09:37+08:00</updated>
+  <updated>2016-06-22T20:31:59+08:00</updated>
   <id>http://MrBoog.github.io/</id>
   <author>
     <name><![CDATA[MrBoog]]></name>
@@ -12,6 +12,45 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Class Cluster]]></title>
+    <link href="http://MrBoog.github.io/blog/2016/06/22/class-cluster/"/>
+    <updated>2016-06-22T20:29:41+08:00</updated>
+    <id>http://MrBoog.github.io/blog/2016/06/22/class-cluster</id>
+    <content type="html"><![CDATA[<p>Class cluster，类簇，这是苹果对抽象工厂模式一种应用，在苹果的Framework中使用广泛，是定义了相同的接口，并提供相同功能的一组类的集合。类簇会有一个公共抽象超类，比如NSString,NSArray,NSNumber,NSDictionary等等，来完成实例化一个具体的私有子类。对于使用者来说，只需要知道有公共超类各种API的作用就可以，不需要知道，超类背后子类的实际实现。</p>
+
+<h5>self = [super init]</h5>
+
+<p>我们在初始化的时候，为什么super init调用过后，会赋值给self呢？因为系统有很多时候使用了类簇，所以这样做防止产生的私有类和self不匹配。<code>实例的isa指针终究应该指向这个私有类，而不是当前的超类。</code>  <br/>
+这样在发送消息的时候，self才能找到真正的需要执行的私有类的方法。</p>
+
+<p><code>
+id objc_msgSend(id self, SEL op, ...)
+</code></p>
+
+<h5>superclass</h5>
+
+<p><code>
+NSArray *array = @[];
+NSLog(@"%@",array.superclass);               //NSArray
+NSLog(@"%@",NSStringFromClass(array.class)); //__NSArrayI
+</code></p>
+
+<p>对于类簇中的超类，比如NSArray，调用superclass就会发现，他的superclass才是真正的NSArray。</p>
+
+<h5>isMemberOfClass</h5>
+
+<p><code>
+NSLog(@"%d",[array isMemberOfClass:[NSArray class]]); //0
+NSLog(@"%d",[array isKindOfClass:[NSArray class]]);   //1
+</code></p>
+
+<p>通过上面的输出同样证明了苹果的类簇利用了多态，通过子类化公共类来实现。
+私有子类的实现，隐藏在簇的内部，不能被直接调用。这样公共类在使用中，实际上存放在内存中的是隐藏在类簇中的某个私有实例。 <br/>
+这样的好处很明显，针对类簇，调用者只需要简单的使用超类提供的API即可。这样NSNumber根据数据不同的类型，而有多种不同的子类化的NSNumber，NSArray根据存储策略不同也有不同的NSArray，而调用者却可以根本不用注意这些。</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Multicast Delegate in Oc]]></title>
@@ -652,210 +691,6 @@ class ReactNativeDemoApp extends React.Component {
 
 <p>React.AppRegistry.registerComponent(&lsquo;HelloReactNative&rsquo;, () => ReactNativeDemoApp);
 ```</p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[关于NSOperation]]></title>
-    <link href="http://MrBoog.github.io/blog/2015/09/30/guan-yu-nsoperation/"/>
-    <updated>2015-09-30T17:56:07+08:00</updated>
-    <id>http://MrBoog.github.io/blog/2015/09/30/guan-yu-nsoperation</id>
-    <content type="html"><![CDATA[<p>NSOperation 是 abstract class 抽象类，不能直接使用，我们使用的时候，一般要子类化，或者直接使用系统提供的两个子类：</p>
-
-<ul>
-<li>NSInvocationOperation</li>
-<li>NSBlockOperation</li>
-</ul>
-
-
-<p>虽然GCD使用起来很方便，但使用不当也会暴露一些问题，比如对任务状态的不好控制等。这可能导致有些我们本来需要取消掉的任务，一直在运行，占用资源。这些情况下我们可以考虑通过 NSOperationQueue 加强对任务的控制。</p>
-
-<hr />
-
-<h4>NSInvocationOperation</h4>
-
-<p>NSInvocationOperation是抽象类NSOperation的实体子类，可以直接使用。如果不结合NSOperationQueue，单独通过调用 start方法使用，NSInvocationOperation是非并发的操作。例如：</p>
-
-<p>```</p>
-
-<pre><code>// 通过 start 直接调用，任务将在主线程中执行。
-NSInvocationOperation *invocationOp = [[NSInvocationOperation alloc] initWithTarget:self selector:@selector(doSomeThingWithInvocation:) object:nil];
-[invocationOp start];
-
-// 或者通过 addOperation 将任务加入队列，可在子线程中执行
-myOperationQueue = [[NSOperationQueue alloc] init];
-[myOperationQueue addOperation:invocationOp];
-</code></pre>
-
-<p>```</p>
-
-<p>当然，在swift中,NSInvocation相关的类，都已经去掉了(不知道以后会不会加入)，也许NSInvocationOperation也是退出历史舞台的节奏。</p>
-
-<hr />
-
-<h4>NSBlockOperation</h4>
-
-<p>NSBlockOperation也是NSOperation的子类，只是跟NSInvocationOperation使用NSInvocation不同，NSBlockOperation使用block，使用起来会更方便。</p>
-
-<p>```</p>
-
-<pre><code>myOperationQueue = [[NSOperationQueue alloc] init];        
-NSBlockOperation *blockOp = [NSBlockOperation blockOperationWithBlock:^{
-    //需要执行的任务
-}];
-
-[blockOp addExecutionBlock:^{
-    //需要执行的任务
-}];
-
-// finished属性为YES后(完成或者被取消)将会执行
-__weak NSBlockOperation *weakOp = blockOp;
-[blockOp setCompletionBlock:^{
-
-    if (!weakOp.isCancelled) {
-
-        [[NSOperationQueue mainQueue] addOperationWithBlock:^{
-            //更新主线程
-        }];         
-    }
-}];
-
-[myOperationQueue addOperation:blockOp];
-</code></pre>
-
-<p>```</p>
-
-<p>上面代码，block相互之间都是并行异步的。也就是说可以同时执行多个block，不同block之间不会相互阻塞。不用等待依赖其他block完成。block内部是顺序执行的。</p>
-
-<p>通过添加依赖，来控制不同的NSBlockOperation之间是否完全并行执行。注意不要循环依赖导致死锁。</p>
-
-<p>```</p>
-
-<pre><code>NSBlockOperation *blockOp2 = [NSBlockOperation blockOperationWithBlock:^{
-    //需要执行的任务
-}];
-
-//blockOp2 将等待至 blockOp 结束后，开始执行
-[blockOp2 addDependency:blockOp];
-[myOperationQueue addOperation:blockOp2];
-</code></pre>
-
-<p>```</p>
-
-<hr />
-
-<h4>子类化自定义NSOperation</h4>
-
-<p>我们可以选择重写 <code>main</code> 方法，或者 <code>start</code> 方法，来实现。</p>
-
-<ul>
-<li>main：重写main方法，不需要手动管理太多状态，使用起来比较简单。</li>
-</ul>
-
-
-<p>```</p>
-
-<pre><code>- (void)main {
-    @autoreleasepool {
-
-        //在这里，我们要频繁的检测 isCancelled 属性
-        if(self.isCancelled){
-            return;
-        }
-    }
-}
-</code></pre>
-
-<p>```</p>
-
-<ul>
-<li><p>start：我们一般不会重写start，相对于重写main方法，处理上要更复杂些。要自己注意任务的一些状态比如isExecuting，isFinished，isConcurrent(isAsynchronous)，isReady。注意，当实现了start，就不会执行main。</p></li>
-<li><p>dependency：任务之间添加依赖。有时候某一个任务，需要等待其他任务的结束后才能开始。这时候，相对于使用GCD的dispatch_barrier_async更容易理解一些。</p></li>
-</ul>
-
-
-<p>```</p>
-
-<pre><code>//在op2的任务尚未执行时，添加依赖，op2将等待直到op完成
-[op2 addDependency:op];
-//移出op2的依赖
-[op2 removeDependency:op];
-</code></pre>
-
-<p>```</p>
-
-<ul>
-<li>Completion block：任务完成后的回调，要注意此时并没有回到主线程。</li>
-</ul>
-
-
-<p>```</p>
-
-<pre><code>__weak NSBlockOperation *weakOp = blockOp;
-[blockOp setCompletionBlock:^{
-
-    if ( !weakOp.isCancelled ) {
-        [[NSOperationQueue mainQueue] addOperationWithBlock:^{
-
-        }];
-    }
-}];
-</code></pre>
-
-<p>```</p>
-
-<p>另外有几点需要注意：</p>
-
-<ul>
-<li><p>已经完成的任务，不能被重新执行。</p></li>
-<li><p>已经添加到队列的任务，也不能被重复添加。</p></li>
-<li><p>当我们对一个任务发送<code>cancel</code>消息时，属性isCancelled会变为YES。    不过，对于自定义的NSOperation来说，要格外注意些。</p>
-
-<p>  在发送cancel消息的时候，如果任务还未开始执行(isExecuting == NO)，就会被 finished 并 从队列中 remove 。</p>
-
-<p>  如果任务正在执行中，这时候任务不会被强制结束。所以这时候，我们要在main方法中，手动检测(isCancelled == YES)并处理。</p></li>
-<li>isFinished等于YES，不代表任务成功完成。也可能任务被取消。所以有时候，我们在Completion block回调中，需要判断任务是否被取消。</li>
-</ul>
-
-
-<hr />
-
-<h4>NSOperationQueue</h4>
-
-<p>我们有两种不同的队列，主队列和自定义队列。主队列在主线程运行，自定义会开启子线程。</p>
-
-<p>```</p>
-
-<pre><code>NSOperationQueue *mainQueue = [NSOperationQueue mainQueue];  
-NSOperationQueue *queue = [[NSOperationQueue alloc] init]; 
-</code></pre>
-
-<p>```</p>
-
-<p>使用NSOperationQueue  的时候，系统默认会根据当前资源使用的情况，来为我们考虑最合适的线程数。当然我们也可以手动设置<code>maxConcurrentOperationCount</code>，限制使用的最大的线程数。更多的时候，其实我们不关心，交给系统处理就好。</p>
-
-<ul>
-<li><p>name：一般我们使用队列的时候，都要给一个队列名字，方便我们维护debug。</p></li>
-<li><p>suspended：用来暂停和恢复队列中的所有任务。不能单独针对队列中的某一个任务。</p></li>
-</ul>
-
-
-<p>```</p>
-
-<pre><code>// Suspend
-[myOperationQueue setSuspended:YES];
-... 
-// Resume
-[myOperationQueue setSuspended:NO]; 
-</code></pre>
-
-<p>```</p>
-
-<ul>
-<li>operationCount (readonly)：获取队列中还存在的正在执行的、等待执行的任务数量。注意，当任务一旦finished，就会从队列中remove。</li>
-<li>cancelAllOperations：对队列所有的operations，发送<code>cancel</code>消息，将 isCancelled 属性设置为 YES 。如我们之前讨论过的，当operation 的 isExecuting 状态为 NO 时，operation 会被 finished 并从队列中 remove 。如果 isExecuting 状态为 YES ，那么我们自定义的operation，就要手动检测 isCancelled 属性。</li>
-</ul>
-
 ]]></content>
   </entry>
   
