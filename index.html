@@ -10,7 +10,7 @@
 
   
   <meta name="description" content="Create a new folder. Place our crash file and dSYM file in that folder: myApp.crash
-myApp.dSYM Find symbolicatecrash file in your Xcode. (which is &hellip;">
+myApp.dSYM Find symbolicatecrash file in your Xcode (which is &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -106,14 +106,14 @@ myApp.dSYM Find symbolicatecrash file in your Xcode. (which is &hellip;">
 <li>myApp.dSYM</li>
 </ul>
 </li>
-<li><p>Find <code>symbolicatecrash</code> file  in your Xcode. (which is written by perl)</p>
+<li><p>Find <code>symbolicatecrash</code> file in your Xcode (which is written by perl). Copy it to the folder that you just created.</p>
 
-<p>Usually, the path should be: <strong>/Applications/Xcode.app/Contents/SharedFrameworks/DVTFoundation.framework/Versions/A/Resources/symbolicatecrash</strong></p>
+<p>Usually, the path should be:
+    <strong>/Applications/Xcode.app/Contents/SharedFrameworks/DVTFoundation.framework/Versions/A/Resources/symbolicatecrash</strong></p>
 
-<p>Or</p>
+<p>Or, You could find the path by using:</p>
 
 <p> <code>
- //You could use follow command to Find the path:
  find /Applications/Xcode.app -name symbolicatecrash -type f
 </code></p></li>
 <li><p>export env var</p>
@@ -128,6 +128,10 @@ myApp.dSYM Find symbolicatecrash file in your Xcode. (which is &hellip;">
 </code></p></li>
 </ol>
 
+
+<p>Ok alright, we&rsquo;ve already done all of the work. So if the dSYM is matched with the crash file, here should be possible to generate a new file: <strong>SymbolicatedM.crash</strong>. Just open it, after symbolicating it should be easy to read this time.</p>
+
+<hr />
 </div>
   
   
