@@ -9,7 +9,8 @@
   <meta name="author" content="MrBoog">
 
   
-  <meta name="description" content="Class cluster，类簇，这是苹果对抽象工厂模式一种应用，在苹果的Framework中使用广泛，是定义了相同的接口，并提供相同功能的一组类的集合。类簇会有一个公共抽象超类，比如NSString,NSArray,NSNumber,NSDictionary等等，来完成实例化一个具体的私有子类。 &hellip;">
+  <meta name="description" content="Create a new folder. Place our crash file and dSYM file in that folder: myApp.crash
+myApp.dSYM Find symbolicatecrash file in your Xcode. (which is &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -65,6 +66,74 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2017/01/10/symbolicating-crash-log/">Symbolicating Crash Log</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2017-01-10T17:23:39+08:00" pubdate data-updated="true">Jan 10<span>th</span>, 2017</time>
+        
+           | <a href="/blog/2017/01/10/symbolicating-crash-log/#disqus_thread"
+             data-disqus-identifier="http://MrBoog.github.io/blog/2017/01/10/symbolicating-crash-log/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><ol>
+<li><p>Create a new folder. Place our crash file and dSYM file in that folder:</p>
+
+<ul>
+<li>myApp.crash</li>
+<li>myApp.dSYM</li>
+</ul>
+</li>
+<li><p>Find <code>symbolicatecrash</code> file  in your Xcode. (which is written by perl)</p>
+
+<p>Usually, the path should be: <strong>/Applications/Xcode.app/Contents/SharedFrameworks/DVTFoundation.framework/Versions/A/Resources/symbolicatecrash</strong></p>
+
+<p>Or</p>
+
+<p> <code>
+ //You could use follow command to Find the path:
+ find /Applications/Xcode.app -name symbolicatecrash -type f
+</code></p></li>
+<li><p>export env var</p>
+
+<p> <code>
+ export DEVELOPER_DIR="/Applications/Xcode.app/Contents/Developer"
+</code></p></li>
+<li><p>Final step, symbolicate crash</p>
+
+<p> <code>
+ ./symbolicatecrash myApp.crash &gt; SymbolicatedM.crash
+</code></p></li>
+</ol>
+
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -1709,115 +1778,6 @@
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2015/05/13/oc-zhong-de-super/">&#8216;Super&#8217; Keyword in Oc</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2015-05-13T20:32:29+08:00" pubdate data-updated="true">May 13<span>th</span>, 2015</time>
-        
-           | <a href="/blog/2015/05/13/oc-zhong-de-super/#disqus_thread"
-             data-disqus-identifier="http://MrBoog.github.io/blog/2015/05/13/oc-zhong-de-super/">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>我们都知道当使用 self 调用方法时，会从当前类的方法列表中开始找，如果没有，就从父类中再找。当使用 super 时，则从父类的方法列表中开始找，然后调用父类的这个方法。这里 self 代表的是当前调用方法这个类的实例，super 代表父类，但具体是什么，或者是怎么做的呢，我们可以做实验检测一下。</p>
-
-<p>创建一个Oc的类Dog，直接继承于 NSObject，里面有这样一些方法，</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>- (void)doEat:(NSString *)food{}
-</span><span class='line'>
-</span><span class='line'>- (instancetype)init
-</span><span class='line'>{
-</span><span class='line'>    if (self = [super init]) {
-</span><span class='line'>        NSLog(@"%@", [self class]);
-</span><span class='line'>        NSLog(@"%@", [super class]);
-</span><span class='line'>        NSLog(@"self %@",self);
-</span><span class='line'>        //NSLog(@"super %@",super);
-</span><span class='line'>    }
-</span><span class='line'>    return self;
-</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
-
-
-<p>在初始化方法里，我们分别输出self和super的类。Dog父类是NSObject，那super输出的会是NSObject么？运行后发现其实二者都是输出Dog。同时，self是一个指针可以看到地址，而当我们把上面注释的那句代码打开，编译器会报一个错误<code>Use of undeclared identifier 'super'</code>，可见super跟self不同的是，它不是当前类的一个参数。</p>
-
-<p>在终端中我们使用<code>clang -rewrite-objc Dog.m</code>，将上面代码转换成C，看到 &ndash; doEat:  转成了下面的C函数</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>static void _I_Dog_doEat_(Dog * self, SEL _cmd, NSString *food){}</span></code></pre></td></tr></table></div></figure>
-
-
-<p>在C的方法中可以看到，这个方法里self是作为第一个参数传入的。这也印证了我们的想法，<code>self 是类的隐藏参数</code>，在转换成c后，每个类的实例方法中都会有这样一个参数。</p>
-
-<p>初始化中的NSLog方法，转换成C如下</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>NSLog((NSString *)&__NSConstantStringImpl__var_folders__z_yckwz02x3m1c7_8b6mc8zynm0000gn_T_Dog_ae5b20_mi_0, ((Class (*)(id, SEL))(void *)objc_msgSend)((id)self, sel_registerName("class")));
-</span><span class='line'>NSLog((NSString *)&__NSConstantStringImpl__var_folders__z_yckwz02x3m1c7_8b6mc8zynm0000gn_T_Dog_ae5b20_mi_1, ((Class (*)(__rw_objc_super *, SEL))(void *)objc_msgSendSuper)((__rw_objc_super){(id)self, (id)class_getSuperclass(objc_getClass("Dog"))}, sel_registerName("class")));
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>我们看到 self 和 super 调用方法时，分别使用了如下C函数</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>id objc_msgSend(id self, SEL op, ...)
-</span><span class='line'>id objc_msgSendSuper(struct objc_super *super, SEL op, ...)
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>所以，其实 super 与 self 不同，<code>不是一个参数，而是一个编译器标识符</code>。由 super 调用的方法，在编译后被转换成 objc_msgSendSuper，其中第一个参数 <a href="https://developer.apple.com/library/mac/documentation/Cocoa/Reference/ObjCRuntimeRef/#//apple_ref/c/tag/objc_super">结构体 objc_super</a> 也是编译器在遇到 super 关键字的时候，生成的。定义如下</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>struct objc_super { id receiver; Class class; };</span></code></pre></td></tr></table></div></figure>
-
-
-<p>所以编译器在遇到 super 时，大体做了两件事</p>
-
-<ul>
-<li>创建 objc_super结构体</li>
-<li>调用 objc_msgSendSuper，向父类方法发送消息。</li>
-</ul>
-
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/2/">&larr; Older</a>
@@ -1831,6 +1791,10 @@
     <section>
   <h1>Recent Posts</h1>
   <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2017/01/10/symbolicating-crash-log/">Symbolicating Crash Log</a>
+      </li>
     
       <li class="post">
         <a href="/blog/2016/06/22/class-cluster/">Class Cluster</a>
@@ -1848,10 +1812,6 @@
         <a href="/blog/2015/12/28/gcd-synchron/">GCD同步操作之 Barriers Groups Semaphore</a>
       </li>
     
-      <li class="post">
-        <a href="/blog/2015/12/14/gcd-part-1/">GCD 同步与异步 串行与并行</a>
-      </li>
-    
   </ul>
 </section>
 
@@ -1865,7 +1825,7 @@
     </div>
   </div>
   <footer role="contentinfo"><p>
-  Copyright &copy; 2017 - MrBoog -
+  Copyright &copy; 2019 - MrBoog -
   <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
 </p>
 

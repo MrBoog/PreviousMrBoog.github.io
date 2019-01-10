@@ -4,7 +4,7 @@
   <title><![CDATA[MrBoog's Blog]]></title>
   <link href="http://MrBoog.github.io/atom.xml" rel="self"/>
   <link href="http://MrBoog.github.io/"/>
-  <updated>2017-12-29T19:27:20+08:00</updated>
+  <updated>2019-01-10T17:59:12+08:00</updated>
   <id>http://MrBoog.github.io/</id>
   <author>
     <name><![CDATA[MrBoog]]></name>
@@ -12,6 +12,44 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Symbolicating Crash Log]]></title>
+    <link href="http://MrBoog.github.io/blog/2017/01/10/symbolicating-crash-log/"/>
+    <updated>2017-01-10T17:23:39+08:00</updated>
+    <id>http://MrBoog.github.io/blog/2017/01/10/symbolicating-crash-log</id>
+    <content type="html"><![CDATA[<ol>
+<li><p>Create a new folder. Place our crash file and dSYM file in that folder:</p>
+
+<ul>
+<li>myApp.crash</li>
+<li>myApp.dSYM</li>
+</ul>
+</li>
+<li><p>Find <code>symbolicatecrash</code> file  in your Xcode. (which is written by perl)</p>
+
+<p>Usually, the path should be: <strong>/Applications/Xcode.app/Contents/SharedFrameworks/DVTFoundation.framework/Versions/A/Resources/symbolicatecrash</strong></p>
+
+<p>Or</p>
+
+<p> <code>
+ //You could use follow command to Find the path:
+ find /Applications/Xcode.app -name symbolicatecrash -type f
+</code></p></li>
+<li><p>export env var</p>
+
+<p> <code>
+ export DEVELOPER_DIR="/Applications/Xcode.app/Contents/Developer"
+</code></p></li>
+<li><p>Final step, symbolicate crash</p>
+
+<p> <code>
+ ./symbolicatecrash myApp.crash &gt; SymbolicatedM.crash
+</code></p></li>
+</ol>
+
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Class Cluster]]></title>

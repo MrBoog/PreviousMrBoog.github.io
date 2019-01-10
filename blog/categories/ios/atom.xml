@@ -4,7 +4,7 @@
   <title><![CDATA[Category: iOS | MrBoog's Blog]]></title>
   <link href="http://MrBoog.github.io/blog/categories/ios/atom.xml" rel="self"/>
   <link href="http://MrBoog.github.io/"/>
-  <updated>2017-12-29T19:27:20+08:00</updated>
+  <updated>2019-01-10T17:59:12+08:00</updated>
   <id>http://MrBoog.github.io/</id>
   <author>
     <name><![CDATA[MrBoog]]></name>
@@ -12,6 +12,44 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Symbolicating Crash Log]]></title>
+    <link href="http://MrBoog.github.io/blog/2017/01/10/symbolicating-crash-log/"/>
+    <updated>2017-01-10T17:23:39+08:00</updated>
+    <id>http://MrBoog.github.io/blog/2017/01/10/symbolicating-crash-log</id>
+    <content type="html"><![CDATA[<ol>
+<li><p>Create a new folder. Place our crash file and dSYM file in that folder:</p>
+
+<ul>
+<li>myApp.crash</li>
+<li>myApp.dSYM</li>
+</ul>
+</li>
+<li><p>Find <code>symbolicatecrash</code> file  in your Xcode. (which is written by perl)</p>
+
+<p>Usually, the path should be: <strong>/Applications/Xcode.app/Contents/SharedFrameworks/DVTFoundation.framework/Versions/A/Resources/symbolicatecrash</strong></p>
+
+<p>Or</p>
+
+<p> <code>
+ //You could use follow command to Find the path:
+ find /Applications/Xcode.app -name symbolicatecrash -type f
+</code></p></li>
+<li><p>export env var</p>
+
+<p> <code>
+ export DEVELOPER_DIR="/Applications/Xcode.app/Contents/Developer"
+</code></p></li>
+<li><p>Final step, symbolicate crash</p>
+
+<p> <code>
+ ./symbolicatecrash myApp.crash &gt; SymbolicatedM.crash
+</code></p></li>
+</ol>
+
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Class Cluster]]></title>
@@ -553,144 +591,6 @@ dispatch_time_t popTime = dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delayInSeco
 </code></pre>
 
 <p>```</p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Hello ReactNative]]></title>
-    <link href="http://MrBoog.github.io/blog/2015/11/11/helloreactnative/"/>
-    <updated>2015-11-11T16:09:23+08:00</updated>
-    <id>http://MrBoog.github.io/blog/2015/11/11/helloreactnative</id>
-    <content type="html"><![CDATA[<p>虽然很多开发者都是一直使用Oc和Swift开发iOS应用，但不得不说ReactNative的'learn-once write-anywhere'，对开发者还是有强大的吸引力的。用Js写逻辑，并且使用原生的UI，不依托于浏览器，如今的Js越来越强大。即便是使用原生语言的开发者，也应该详细了解下。</p>
-
-<h3>配置 React Native</h3>
-
-<p>要想在项目中使用<a href="https://facebook.github.io/react-native/docs/getting-started.html#content">ReactNative</a>，需要先搭建Node.js环境。下面我们使用nvm，下载管理Node.js。</p>
-
-<ul>
-<li>nvm</li>
-</ul>
-
-
-<p>官方安装和使用 nvm 的<a href="https://github.com/creationix/nvm#installation">步骤</a>。简单整理下：</p>
-
-<p>安装：</p>
-
-<p>```</p>
-
-<pre><code>curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.30.2/install.sh | bash
-
-sh ~/.nvm/nvm.sh
-</code></pre>
-
-<p>```</p>
-
-<p>把下面的内容追加到 <code>~/.bashrc</code> 和 <code>~/.profile</code> 中</p>
-
-<p>例如：vim ~/.bashrc</p>
-
-<p>```</p>
-
-<pre><code>source ~/.nvm/nvm.sh
-</code></pre>
-
-<p>```</p>
-
-<p>完成后重启终端</p>
-
-<p>使用nvm下载Node：</p>
-
-<p>```</p>
-
-<pre><code>//查看支持版本
-nvm ls-remote
-
-nvm install v5.5.0
-
-nvm use v5.5.0
-</code></pre>
-
-<p>```</p>
-
-<p>或者直接下载最新版本的Node</p>
-
-<p>```</p>
-
-<pre><code>nvm install node &amp;&amp; nvm alias default node
-</code></pre>
-
-<p>```</p>
-
-<ul>
-<li>安装watchman</li>
-</ul>
-
-
-<p>```</p>
-
-<pre><code>brew install watchman
-</code></pre>
-
-<p>```</p>
-
-<ul>
-<li>安装 React Native CLI tool</li>
-</ul>
-
-
-<p>```</p>
-
-<pre><code>npm install -g react-native-cli
-</code></pre>
-
-<p>```</p>
-
-<p>准备工作基本结束</p>
-
-<hr />
-
-<h3>hello world</h3>
-
-<p>下面我们选择一个目录，新建一个ReactNative项目。</p>
-
-<p>```</p>
-
-<pre><code>react-native init HelloReactNative
-</code></pre>
-
-<p>```</p>
-
-<p>找到index.ios.js，替换一下下面的代码。找到iOS文件夹下面的工程，运行一下，一个简单用ReactNative实现的helloworld程序，就可以跑起来了。</p>
-
-<p>```
-&lsquo;use strict&rsquo;;</p>
-
-<p>var React = require(&lsquo;react-native&rsquo;);</p>
-
-<p>var styles = React.StyleSheet.create({
-  text: {</p>
-
-<pre><code>color: 'black',
-backgroundColor: 'white',
-fontSize: 30,
-margin: 80
-</code></pre>
-
-<p>  }
-});</p>
-
-<p>// for app itself
-class ReactNativeDemoApp extends React.Component {
-  render() {</p>
-
-<pre><code>return React.createElement(React.Text, {style: styles.text}, "Hello World");
-</code></pre>
-
-<p>  }
-}</p>
-
-<p>React.AppRegistry.registerComponent(&lsquo;HelloReactNative&rsquo;, () => ReactNativeDemoApp);
-```</p>
 ]]></content>
   </entry>
   
