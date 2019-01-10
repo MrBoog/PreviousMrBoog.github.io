@@ -13,14 +13,14 @@ categories: iOS
 
 
 
-2. Find `symbolicatecrash` file  in your Xcode. (which is written by perl) 
+2. Find `symbolicatecrash` file in your Xcode (which is written by perl). Copy it to the folder that you just created.
 
-   Usually, the path should be: __/Applications/Xcode.app/Contents/SharedFrameworks/DVTFoundation.framework/Versions/A/Resources/symbolicatecrash__
+   Usually, the path should be: 
+       __/Applications/Xcode.app/Contents/SharedFrameworks/DVTFoundation.framework/Versions/A/Resources/symbolicatecrash__
 
-   Or
+   Or, You could find the path by using:
 
     ```
-    //You could use follow command to Find the path:
     find /Applications/Xcode.app -name symbolicatecrash -type f
     ```
 
@@ -40,7 +40,9 @@ categories: iOS
     ./symbolicatecrash myApp.crash > SymbolicatedM.crash
     ```
 
+Ok alright, we've already done all of the work. So if the dSYM is matched with the crash file, here should be possible to generate a new file: __SymbolicatedM.crash__. Just open it, after symbolicating it should be easy to read this time.
 
+---
 
 
 
