@@ -9,8 +9,7 @@
   <meta name="author" content="MrBoog">
 
   
-  <meta name="description" content="Create a new folder. Place our crash file and dSYM file in that folder: myApp.crash
-myApp.dSYM Find symbolicatecrash file in your Xcode (which is &hellip;">
+  <meta name="description" content="When our App crashes, a crash report is created and stored on the device. But usually, we need to symbolicate the log before analyzing it. So here I &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -95,7 +94,9 @@ myApp.dSYM Find symbolicatecrash file in your Xcode (which is &hellip;">
   </header>
 
 
-<div class="entry-content"><ol>
+<div class="entry-content"><p>When our App crashes, a crash report is created and stored on the device. But usually, we need to symbolicate the log before analyzing it. So here I write down the steps to symbolicate crash log.</p>
+
+<ol>
 <li><p>Create a new folder. Place our crash file and dSYM file in that folder:</p>
 
 <ul>
@@ -108,7 +109,7 @@ myApp.dSYM Find symbolicatecrash file in your Xcode (which is &hellip;">
 <p>Usually, the path should be:
     <strong>/Applications/Xcode.app/Contents/SharedFrameworks/DVTFoundation.framework/Versions/A/Resources/symbolicatecrash</strong></p>
 
-<p>Or, You could find the path by using:</p>
+<p>Or, You could find the path by yourself:</p>
 
 <p> <code>
  find /Applications/Xcode.app -name symbolicatecrash -type f

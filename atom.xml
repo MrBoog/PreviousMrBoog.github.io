@@ -4,7 +4,7 @@
   <title><![CDATA[MrBoog's Blog]]></title>
   <link href="http://MrBoog.github.io/atom.xml" rel="self"/>
   <link href="http://MrBoog.github.io/"/>
-  <updated>2019-01-10T18:14:37+08:00</updated>
+  <updated>2019-01-11T15:26:09+08:00</updated>
   <id>http://MrBoog.github.io/</id>
   <author>
     <name><![CDATA[MrBoog]]></name>
@@ -18,7 +18,9 @@
     <link href="http://MrBoog.github.io/blog/2017/01/10/symbolicating-crash-log/"/>
     <updated>2017-01-10T17:23:39+08:00</updated>
     <id>http://MrBoog.github.io/blog/2017/01/10/symbolicating-crash-log</id>
-    <content type="html"><![CDATA[<ol>
+    <content type="html"><![CDATA[<p>When our App crashes, a crash report is created and stored on the device. But usually, we need to symbolicate the log before analyzing it. So here I write down the steps to symbolicate crash log.</p>
+
+<ol>
 <li><p>Create a new folder. Place our crash file and dSYM file in that folder:</p>
 
 <ul>
@@ -31,7 +33,7 @@
 <p>Usually, the path should be:
     <strong>/Applications/Xcode.app/Contents/SharedFrameworks/DVTFoundation.framework/Versions/A/Resources/symbolicatecrash</strong></p>
 
-<p>Or, You could find the path by using:</p>
+<p>Or, You could find the path by yourself:</p>
 
 <p> <code>
  find /Applications/Xcode.app -name symbolicatecrash -type f
