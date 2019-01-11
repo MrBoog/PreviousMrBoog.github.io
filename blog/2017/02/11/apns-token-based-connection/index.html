@@ -5,13 +5,11 @@
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <title>Random in iOS - MrBoog's Blog</title>
+  <title>APNs Token-Based Connection - MrBoog's Blog</title>
   <meta name="author" content="MrBoog">
 
   
-  <meta name="description" content="生成随机数 arc4random(void)//不够平衡
-推荐 arc4random_uniform(u_int32_t) 生成 [0 , n )，之间的随机数： 1
-NSUInteger foo = arc4random_uniform(n); 生成 [minimum , maximum]， &hellip;">
+  <meta name="description" content="2016年苹果上线了新的推送验证方式，使用新的方式我们将不再需要之前的 .p12或者.pem文件，取而代之的是一个.p8文件 (并且不用区分dev和release环境)。一些大的推送服务厂商已经开始支持这种新的方式了，比如国外的Firebase。这种新的方式优势还是很明显的，比如说 速度更快 &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -20,7 +18,7 @@ NSUInteger foo = arc4random_uniform(n); 生成 [minimum , maximum]， &hellip;">
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   
-  <link rel="canonical" href="http://MrBoog.github.io/blog/2014/06/09/random-in-ios">
+  <link rel="canonical" href="http://MrBoog.github.io/blog/2017/02/11/apns-token-based-connection">
   <link href="/favicon.png" rel="icon">
   <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
   <link href="/atom.xml" rel="alternate" title="MrBoog's Blog" type="application/atom+xml">
@@ -70,7 +68,7 @@ NSUInteger foo = arc4random_uniform(n); 生成 [minimum , maximum]， &hellip;">
   
   <header>
     
-      <h1 class="entry-title">Random in iOS</h1>
+      <h1 class="entry-title">APNs Token-Based Connection</h1>
     
     
       <p class="meta">
@@ -86,7 +84,7 @@ NSUInteger foo = arc4random_uniform(n); 生成 [minimum , maximum]， &hellip;">
   
 
 
-<time datetime="2014-06-09T23:10:41+08:00" pubdate data-updated="true">Jun 9<span>th</span>, 2014</time>
+<time datetime="2017-02-11T20:17:59+08:00" pubdate data-updated="true">Feb 11<span>th</span>, 2017</time>
         
            | <a href="#disqus_thread"
              data-disqus-identifier="http://MrBoog.github.io">Comments</a>
@@ -96,68 +94,20 @@ NSUInteger foo = arc4random_uniform(n); 生成 [minimum , maximum]， &hellip;">
   </header>
 
 
-<div class="entry-content"><p>生成随机数   <br/>
-arc4random(void)//不够平衡<br/>
-推荐    <br/>
-arc4random_uniform(u_int32_t)</p>
+<div class="entry-content"><p>2016年苹果上线了新的推送验证方式，使用新的方式我们将不再需要之前的 <strong>.p12</strong>或者<strong>.pem</strong>文件，取而代之的是一个<strong>.p8</strong>文件 (并且不用区分dev和release环境)。一些大的推送服务厂商已经开始支持这种新的方式了，比如国外的<a href="https://firebase.google.com/docs/cloud-messaging/ios/certs">Firebase</a>。这种新的方式优势还是很明显的，比如说</p>
 
-<p>生成 [0 , n )，之间的随机数：</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>NSUInteger foo = arc4random_uniform(n);</span></code></pre></td></tr></table></div></figure>
-
-
-<p>生成 [minimum , maximum]，之间的随机数：</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>NSUInteger foo = arc4random_uniform((maximum - minimum) + 1) + minimum;</span></code></pre></td></tr></table></div></figure>
+<ul>
+<li>速度更快</li>
+<li>可以支持同一开发者账号下的多个App</li>
+<li>支持多个后台同时使用同一个文件</li>
+<li>不需要考虑生产和开发环境</li>
+<li>不会过期</li>
+</ul>
 
 
-<p>除整数之外，产生(0 , 1)，之前的随机数：</p>
+<p>需要注意的是，虽然新的推送验证永远不会过期，但认证密钥和<strong>.p8</strong>文件需要严格保密。如果发现有泄露风险，建议赶紧revoke然后重新创建。</p>
 
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>//先种随机种子
-</span><span class='line'>srand48(time(0));
-</span><span class='line'>double foo = drand48();</span></code></pre></td></tr></table></div></figure>
-
-
-<p>延伸一下，随机取数组中的元素：</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>//arc4random_uniform(n) 随机范围是[0，n），可直接用于数组下标
-</span><span class='line'>if ([array count] &gt; 0) {
-</span><span class='line'>  id obj = array[arc4random_uniform([array count])];
-</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
-
-
-<p>没有使用NSSet，却想打乱顺序：</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>NSMutableArray *mutableArray = [NSMutableArray arrayWithArray:array];
-</span><span class='line'>NSUInteger count = [mutableArray count];
-</span><span class='line'>// See http://en.wikipedia.org/wiki/Fisher–Yates_shuffle
-</span><span class='line'>if (count &gt; 1) {
-</span><span class='line'>  for (NSUInteger i = count - 1; i &gt; 0; --i) {
-</span><span class='line'>      [mutableArray exchangeObjectAtIndex:i withObjectAtIndex:arc4random_uniform((int32_t)(i + 1))];
-</span><span class='line'>  }
-</span><span class='line'>}
-</span><span class='line'>
-</span><span class='line'>NSArray *randomArray = [NSArray arrayWithArray:mutableArray];</span></code></pre></td></tr></table></div></figure>
-
+<p>由于不再需要分别配置dev和release环境的证书，所以测试的流程也会简化。<strong>推荐一个开源的基于Node.js的<a href="https://www.npmjs.com/package/apn">推送后台</a>。</strong> 我是只用于测试的，毕竟真正的生产环境大家都还是在用一些大厂的服务，比如谷歌的Firebase或者国内的友盟推送等。这里有个简单用这个Node.js的<a href="https://github.com/MrBoog/Test-ANPS-with-p8-file">Demo</a>, 可以用于开发者自己测试推送使用。</p>
 </div>
 
 
@@ -180,21 +130,15 @@ arc4random_uniform(u_int32_t)</p>
   
 
 
-<time datetime="2014-06-09T23:10:41+08:00" pubdate data-updated="true">Jun 9<span>th</span>, 2014</time>
+<time datetime="2017-02-11T20:17:59+08:00" pubdate data-updated="true">Feb 11<span>th</span>, 2017</time>
       
-
-<span class="categories">
-  
-    <a class='category' href='/blog/categories/ios/'>iOS</a>
-  
-</span>
 
 
     </p>
     
       <div class="sharing">
   
-  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://MrBoog.github.io/blog/2014/06/09/random-in-ios/" data-via="" data-counturl="http://MrBoog.github.io/blog/2014/06/09/random-in-ios/" >Tweet</a>
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://MrBoog.github.io/blog/2017/02/11/apns-token-based-connection/" data-via="" data-counturl="http://MrBoog.github.io/blog/2017/02/11/apns-token-based-connection/" >Tweet</a>
   
   
   
@@ -203,10 +147,8 @@ arc4random_uniform(u_int32_t)</p>
     
     <p class="meta">
       
-        <a class="basic-alignment left" href="/blog/2014/04/26/ios-guo-ji-hua-zhuan/" title="Previous Post: iOS 应用的国际化">&laquo; iOS 应用的国际化</a>
+        <a class="basic-alignment left" href="/blog/2017/01/10/symbolicating-crash-log/" title="Previous Post: Symbolicating crash log">&laquo; Symbolicating crash log</a>
       
-      
-        <a class="basic-alignment right" href="/blog/2014/10/18/xcode6-live-view-debugger/" title="Next Post: Xcode6 live view debugger">Xcode6 live view debugger &raquo;</a>
       
     </p>
   </footer>
@@ -272,8 +214,8 @@ arc4random_uniform(u_int32_t)</p>
       
         
         // var disqus_developer = 1;
-        var disqus_identifier = 'http://MrBoog.github.io/blog/2014/06/09/random-in-ios/';
-        var disqus_url = 'http://MrBoog.github.io/blog/2014/06/09/random-in-ios/';
+        var disqus_identifier = 'http://MrBoog.github.io/blog/2017/02/11/apns-token-based-connection/';
+        var disqus_url = 'http://MrBoog.github.io/blog/2017/02/11/apns-token-based-connection/';
         var disqus_script = 'embed.js';
       
     (function () {

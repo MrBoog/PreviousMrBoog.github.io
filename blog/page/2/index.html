@@ -9,7 +9,8 @@
   <meta name="author" content="MrBoog">
 
   
-  <meta name="description" content="我们都知道当使用 self 调用方法时，会从当前类的方法列表中开始找，如果没有，就从父类中再找。当使用 super 时，则从父类的方法列表中开始找，然后调用父类的这个方法。这里 self 代表的是当前调用方法这个类的实例，super 代表父类，但具体是什么，或者是怎么做的呢，我们可以做实验检测一下 &hellip;">
+  <meta name="description" content="之前一直在终端使用 ipfw脚本命令，来模拟低速网络，不过在Yosemite 之后Apple移除了ipfw 命令，but now IPFW is gone, Moving to PF。 GUI工具: Charles 这个抓包工具网络上介绍的已经很多了，就不再多说了。
+使用官方提供的 Network &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -65,6 +66,130 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2015/05/19/mo-ni-di-su-wang-luo/">Terminal中模拟低速网络</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2015-05-19T15:09:21+08:00" pubdate data-updated="true">May 19<span>th</span>, 2015</time>
+        
+           | <a href="/blog/2015/05/19/mo-ni-di-su-wang-luo/#disqus_thread"
+             data-disqus-identifier="http://MrBoog.github.io/blog/2015/05/19/mo-ni-di-su-wang-luo/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>之前一直在终端使用 <code>ipfw</code>脚本命令，来模拟低速网络，不过在Yosemite 之后Apple移除了ipfw 命令，<a href="https://discussions.apple.com/thread/6645172?start=0&amp;tstart=0">but now  IPFW is gone, Moving to PF</a>。</p>
+
+<h5>GUI工具:</h5>
+
+<ul>
+<li><p>Charles 这个抓包工具网络上介绍的已经很多了，就不再多说了。</p></li>
+<li><p>使用官方提供的<a href="https://developer.apple.com/downloads/?q=Hardware%20IO%20Tools"> Network Link Conditioner</a>。</p></li>
+</ul>
+
+
+<p>这是IO工具包，下载后，双击“Network Link Conditioner.prefPane” 进行安装。</p>
+
+<p>启用后，配置一下very bad network，重新启动模拟器，我们就可以使用调整我们的模拟器网络环境了，模拟低速网络。(目前没办法对特定的地址限速，会降低电脑中所有请求的速度)</p>
+
+<h5>Terminal PF命令：</h5>
+
+<p>当然，如果使用终端，还是可以使用 PF命令，来替换 ipfw，下面是一段<a href="https://github.com/MrBoog/Limiting-bandwidth-on-MacOS">脚本</a></p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>
+</span><span class='line'>#!/bin/bash
+</span><span class='line'>
+</span><span class='line'># Reset dummynet to default config
+</span><span class='line'>dnctl -f flush
+</span><span class='line'>
+</span><span class='line'># Compose an addendum to the default config: creates a new anchor
+</span><span class='line'>(cat /etc/pf.conf &&
+</span><span class='line'>echo 'dummynet-anchor "my_anchor"' &&
+</span><span class='line'>echo 'anchor "my_anchor"') | pfctl -q -f -
+</span><span class='line'>
+</span><span class='line'># Configure the new anchor
+</span><span class='line'>cat &lt;&lt;EOF | pfctl -q -a my_anchor -f -
+</span><span class='line'>no dummynet quick on lo0 all
+</span><span class='line'>dummynet out proto tcp from any to any pipe 1
+</span><span class='line'>EOF
+</span><span class='line'>
+</span><span class='line'># Create the dummynet queue
+</span><span class='line'>dnctl pipe 1 config bw 4100byte/s
+</span><span class='line'>
+</span><span class='line'># Activate PF
+</span><span class='line'>pfctl -E
+</span><span class='line'>
+</span><span class='line'># to check that dnctl is properly configured: sudo dnctl list</span></code></pre></td></tr></table></div></figure>
+
+
+<p>检查配置列表</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>sudo dnctl list</span></code></pre></td></tr></table></div></figure>
+
+
+<p>最后的最后。。使用后别忘记重置。。</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>sudo dnctl -f flush
+</span><span class='line'>sudo pfctl -f /etc/pf.conf
+</span><span class='line'>sudo dnctl list
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>如果不起作用，可能是PF默认没有开启，使用 <code>sudo pfctl -E</code> 开启。</p>
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -1336,122 +1461,9 @@ printf(&ldquo;%s&rdquo;,objCType);</p>
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2014/03/30/push/">MacOS下配置php环境测试推送</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2014-03-30T16:29:11+08:00" pubdate data-updated="true">Mar 30<span>th</span>, 2014</time>
-        
-           | <a href="/blog/2014/03/30/push/#disqus_thread"
-             data-disqus-identifier="http://MrBoog.github.io/blog/2014/03/30/push/">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><h3>首先在Mac下配置php环境</h3>
-
-<p>在iOS开发中，有时候我们经常要测试APNS推送的部分，我们可以本地自己搭建推送的环境，这样自己测试起来也能提高效率。目前有很多类似的开源项目，比如<a href="https://github.com/stefanhafeneger/PushMeBaby">pushmebaby</a>,<a href="https://github.com/blommegard/APNS-Pusher">APNS-Pusher</a>。本文适合喜欢自己在本地折腾的同学。</p>
-
-<h5>启动Mac的Apache服务。</h5>
-
-<ol>
-<li><p>如果您还是10.7的用户，只需要在<code>系统偏好设置--&gt;共享</code>中勾选<code>web共享</code>即可:
-<img src="http://mrboog.github.io/images/image_source/apns_1.png" alt="" /><br/>
-<img src="http://mrboog.github.io/images/image_source/apns_3.png" alt="" /><br/>
-浏览器中输入<code>localhost/~[用户名]</code>，就可以直接访问<code>/Users/[用户名]/Sites</code> 目录.</p></li>
-<li><p>对于10.8或10.9的用户运行apache服务，需要通过terminal手动开启, 输入下述命令开启服务<br/>
-<code>sudo apachectl start</code>  <br/>
-这样就可以了，浏览器中输入:&ldquo;localhost&rdquo;,应该能看到&#8221;It works&#8221;的字样. <br/>
-<img src="http://mrboog.github.io/images/image_source/apns_5.png" alt="" /> <br/>
-cd /,到根目录下，在根目录的Library/WebServer/Documents/里面就是我们访问的地方.</p></li>
-</ol>
-
-
-<h5>开启PHP服务</h5>
-
-<ol>
-<li>在终端中运行<code>sudo vi /etc/apache2/httpd.conf</code>，打开Apache的配置文件。</li>
-<li>找到“#LoadModule php5_module libexec/apache2/libphp5.so”，把前面的#号去掉。然后:wq保存。</li>
-<li>运行<code>sudo apachectl restart</code>，重启Apache。ok，到这里PHP就可以用了。</li>
-<li>运行<code>cp /Library/WebServer/Documents/index.html.en /Library/WebServer/Documents/info.php</code>。即在Apache的根目录下复制index.html.en文件并重命名为info.php。</li>
-<li>在终端中运行<code>vi /Library/WebServer/Document/info.php</code>，这样就可以在vi中编辑info.php文件了。在“It’s works!”后面加上“&lt;?php phpinfo(); ?>”，然后保存之。这样就可以在<code>http://localhost/info.php</code>，中看到有关PHP的信息，比如版本号是5.3.26。<br/>
-<img src="http://mrboog.github.io/images/image_source/apns_6.png" alt="" /></li>
-</ol>
-
-
-<h5>php推送</h5>
-
-<p>上述部分都完成后，就可以写php，来实现推送功能了。相关php代码可到<a href="https://github.com/MrBoog/push">这里</a>去下载。将push文件夹放置于Library/WebServer/Documents/目录下，访问<code>http://localhost/push/apns_form.php</code>，测试的时候替换Library/WebServer/Documents/push/目录下的证书apns_dev.pem与apns_pro.pem即可。 <br/>
-<img src="http://mrboog.github.io/images/image_source/apns_7.png" alt="" /></p>
-
-<hr />
-
-<p>由于10.7之后，系统没有自带用户级的web目录~/Sites，我们目前的操作都是在系统级的根目录下进行的：</p>
-
-<p>/Library/WebServer/Documents/</p>
-
-<p>当然我们也可以在</p>
-
-<p>/Users/mac/Sites</p>
-
-<p>目录下建立用户级的Sites，命令如下：</p>
-
-<pre><code> sudo mkdir ~/Sites
-</code></pre>
-
-<p>检查下面这个文件夹下面，有没有 “username”.conf文件，我的名字是mac，</p>
-
-<p><img src="http://mrboog.github.io/images/image_source/apns_8.png" alt="" /></p>
-
-<p>如果没有的话就创建一个，</p>
-
-<pre><code> sudo vi /etc/apache2/users/"username".conf
-</code></pre>
-
-<p>用vi打开后，将下面这里username替换成自己的，并复制进去，然后:wq保存。</p>
-
-<pre><code> &lt;Directory "/Users/'username'/Sites/"&gt;   
- Options Indexes MultiViews  
- AllowOverride All  
- Order allow,deny  
- Allow from all    
- &lt;/Directory&gt;
-</code></pre>
-
-<p>保存后分配相应权限，然后重启Apache。</p>
-
-<pre><code> sudo chmod 755 /etc/apache2/users/你的用户名.conf  
- sudo apachectl restart
-</code></pre>
-
-<p>到此，访问<code>http://localhost/~'username'</code>试试看，我们也可以访问用户级站点了。</p>
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
+    
+      <a class="prev" href="/blog/page/3/">&larr; Older</a>
     
     <a href="/blog/archives">Blog Archives</a>
     
@@ -1464,6 +1476,10 @@ cd /,到根目录下，在根目录的Library/WebServer/Documents/里面就是�
     <section>
   <h1>Recent Posts</h1>
   <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2017/02/11/apns-token-based-connection/">APNs Token-Based Connection</a>
+      </li>
     
       <li class="post">
         <a href="/blog/2017/01/10/symbolicating-crash-log/">Symbolicating Crash Log</a>
@@ -1479,10 +1495,6 @@ cd /,到根目录下，在根目录的Library/WebServer/Documents/里面就是�
     
       <li class="post">
         <a href="/blog/2016/03/14/multicast-delegate-in-oc/">Multicast Delegate in Oc</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2015/12/28/gcd-synchron/">GCD同步操作之 Barriers Groups Semaphore</a>
       </li>
     
   </ul>
