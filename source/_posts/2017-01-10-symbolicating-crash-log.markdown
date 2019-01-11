@@ -6,6 +6,8 @@ comments: true
 categories: iOS
 ---
 
+When our App crashes, a crash report is created and stored on the device. But usually, we need to symbolicate the log before analyzing it. So here I write down the steps to symbolicate crash log.
+
 1. Create a new folder. Place our crash file and dSYM file in that folder: 
 
     * myApp.crash
@@ -18,7 +20,7 @@ categories: iOS
    Usually, the path should be: 
        __/Applications/Xcode.app/Contents/SharedFrameworks/DVTFoundation.framework/Versions/A/Resources/symbolicatecrash__
 
-   Or, You could find the path by using:
+   Or, You could find the path by yourself:
 
     ```
     find /Applications/Xcode.app -name symbolicatecrash -type f
