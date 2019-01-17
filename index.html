@@ -187,21 +187,21 @@
 
 <h3>Demo time:</h3>
 
-<p>下面简单写一个可以传参数的demo，假设我们要做一个可以一键备份我的博客的功能。</p>
+<p>下面简单写一个可以传参数的demo，假设我们要做一个可以一键备份我的博客的功能。其实就是把文章Push到对应的Git服务器。</p>
 
-<p>按照之前的步骤，创建一个新的 backup.swift文件，用来提交我的博客到git服务器同时需要提交相应描述。
-这里我们要解决两个问题。</p>
+<p>按照之前的步骤，创建一个新的 backup.swift文件，用来提交我的博客到git服务器，同时需要添加本次提交相应的描述。这样的话，这里我们要解决两个问题。</p>
 
 <ol>
-<li>获取命令行传入的参数</li>
-<li>要在swift里面调用其他命令行工具，比如语句: git add .</li>
+<li>既然提交的描述是动态的，需要通过参数传入。我们就能获取到命令行传入的参数。</li>
+<li>需要在swift里面调用其他命令行工具，比如语句: git pull。</li>
 </ol>
 
 
-<p>要解决第一个问题，我们需要引用一个新的类<strong>CommandLine </strong>(或者<code>C_ARGC</code> and <code>C_ARGV</code>)。
+<p>要解决第一个问题，我们需要引用一个新的类<strong>CommandLine</strong> (或者更基础的<code>C_ARGC</code> and <code>C_ARGV</code>也可以)。
 CommandLine.arguments是个数组，可以直接通过它拿到想要的参数。
-至于第二个问题，我们需要另一个在Swift脚本中很重要类<strong>Process</strong>。Process可以混合 swift和bash。
-下面直接看下编写后的backup.swift：</p>
+至于第二个问题，我们需要引入另一个在Swift脚本中很重要类 <strong>Process</strong>。Process很强大，可以混合 swift和bash。这让我们在swift中使用git命令成为可能。</p>
+
+<p>下面就是编写后的backup.swift文件：</p>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
