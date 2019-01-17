@@ -96,29 +96,30 @@ CommandLine.arguments是个数组，可以直接通过它拿到想要的参数�
 import Foundation
 
 func backup() {
-let args = CommandLine.arguments
-guard args.count > 1 else {
-return print("Backup Failed! : \n    Detail: Missing commit message whick should be surrounded by quotation mark.")
-}
-let arg = args[1]
-shell("git", "pull")
-shell("git", "commit", "-am", arg)
-shell("git", "push", "origin", "HEAD:source")
+    let args = CommandLine.arguments
+    guard args.count > 1 else {
+        return print("Backup Failed! : \n    Detail: Missing commit message whick should be surrounded by quotation mark.")
+    }
+    let arg = args[1]
+    shell("git", "pull")
+    shell("git", "commit", "-am", arg)
+    shell("git", "push", "origin", "HEAD:source")
 }
 
 @discardableResult
 func shell(_ args: String...) -> Int32 {
-let task = Process()
-task.launchPath = "/usr/bin/env"
-task.arguments = args
-task.launch()
-task.waitUntilExit()
-return task.terminationStatus
+    let task = Process()
+    task.launchPath = "/usr/bin/env"
+    task.arguments = args
+    task.launch()
+    task.waitUntilExit()
+    return task.terminationStatus
 }
 
 backup()
 ```
 
+这个例子中，函数 `shell(_ args: String...) -> Int32` 用来实现Swift调用其他命令行命令。`backup()` 会先读取输入的参数，然后执行对应的备份操作。       
 把这个脚本放在我的博客git目录下，运行就会自动开始将内容Push到git服务器了。
 
 ```
