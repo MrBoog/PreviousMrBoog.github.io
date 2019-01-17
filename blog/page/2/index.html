@@ -9,8 +9,7 @@
   <meta name="author" content="MrBoog">
 
   
-  <meta name="description" content="之前一直在终端使用 ipfw脚本命令，来模拟低速网络，不过在Yosemite 之后Apple移除了ipfw 命令，but now IPFW is gone, Moving to PF。 GUI工具: Charles 这个抓包工具网络上介绍的已经很多了，就不再多说了。
-使用官方提供的 Network &hellip;">
+  <meta name="description" content="KVC的集合运算符是一些特定的，以@符号作为前缀的字符串，可以作为key path参数传入valueForKeyPath:方法中，以完成一些特定的便捷操作，如查找最大值，最小值，平均值等等。 集合运算符，除了支持常见的集合NSArray、NSSet、NSDictionary以外， &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -66,6 +65,128 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2015/05/24/kvc-collection-operators-in-oc/">KVC Collection Operators in Oc</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2015-05-24T16:04:31+08:00" pubdate data-updated="true">May 24<span>th</span>, 2015</time>
+        
+           | <a href="/blog/2015/05/24/kvc-collection-operators-in-oc/#disqus_thread"
+             data-disqus-identifier="http://MrBoog.github.io/blog/2015/05/24/kvc-collection-operators-in-oc/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p><a href="https://developer.apple.com/library/mac/documentation/Cocoa/Conceptual/KeyValueCoding/Articles/CollectionOperators.html#//apple_ref/doc/uid/20002176-BAJEAIEE">KVC的集合运算符</a>是一些特定的，以@符号作为前缀的字符串，可以作为key path参数传入<strong>valueForKeyPath:</strong>方法中，以完成一些特定的便捷操作，如查找最大值，最小值，平均值等等。</p>
+
+<blockquote><p>集合运算符，除了支持常见的集合NSArray、NSSet、NSDictionary以外，NSPointerArray、NSHashTable、NSMapTable应该也是支持的。</p></blockquote>
+
+<p>例如，下面是平时我们计算一个数组里Product的price属性的平均值的方法</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>double total = 0.0;
+</span><span class='line'>for (Product *product in productsArray) {
+</span><span class='line'>  total += [product.price doubleValue];
+</span><span class='line'>}
+</span><span class='line'>double average = total / [productsArray count];</span></code></pre></td></tr></table></div></figure>
+
+
+<p>使用KVC的集合运算符，可以用一句话来改写</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>NSNumber *priceAverage = [productsArray valueForKeyPath:@"@avg.price"];
+</span></code></pre></td></tr></table></div></figure>
+
+
+<hr />
+
+<p>按照苹果的文档，KVC集合运算符被分为下面三类</p>
+
+<h3>1.Simple Collection Operators</h3>
+
+<p>为集合提供一些便捷运算。返回的是strings, number, 或者 dates。  <br/>
+共有5种操作：</p>
+
+<ul>
+<li><p>@avg : 返回集合中对象某个属性平均值，NSNumber类型</p></li>
+<li><p>@count : 返回集合中对象总数，NSNumber类型</p></li>
+<li><p>@max、@min : 返回集合中对象某个属性最大、小值，实际是调用<strong>compare: </strong>方法比较，类型根据属性而定</p></li>
+<li><p>@sum : 返回集合中对象某个属性之和，每个属性都被转换为double后进行计算，NSNumber类型</p></li>
+</ul>
+
+
+<blockquote><p>如果以上集合中的对象不是自定义对象，而是Cocoa提供的类比如NSNumber，我们可以self代替key path，像这样使用：[@[@(1), @(2), @(3)] valueForKeyPath:@&ldquo;@max.self&rdquo;]</p></blockquote>
+
+<hr />
+
+<h3>2.Object Operators</h3>
+
+<p>对象操作符是很有用的操作，获取集合中对象某一个属性组成的数组。返回NSArray。</p>
+
+<ul>
+<li><p>@distinctUnionOfObjects : 返回结果去重。</p></li>
+<li><p>@unionOfObjects : 返会结果不去重。</p></li>
+</ul>
+
+
+<p>例如 获取集合下所有Product的name属性的集合</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>NSArray *names = [productsArray valueForKeyPath:@"@unionOfObjects.name"];
+</span><span class='line'>
+</span><span class='line'>//去重
+</span><span class='line'>NSArray *distinctNames = [productsArray valueForKeyPath:@"@distinctUnionOfObjects.name"];</span></code></pre></td></tr></table></div></figure>
+
+
+<hr />
+
+<h3>3.Array and Set Operators</h3>
+
+<p>类似于Object Operators的作用。不过是作用于嵌套集合。从上面的例子来说，就是支持从包含多个productsArray的数组中获取Product的name属性的集合。返回的是一个数组或者集合。</p>
+
+<ul>
+<li><p>@distinctUnionOfArrays : 去重，返回NSArray</p></li>
+<li><p>@unionOfArrays : 不去重，返回NSArray</p></li>
+<li><p>@distinctUnionOfSets : 去重，返回NSSet。NSSet不能包含重复数据，所以只有这一个方法。</p></li>
+</ul>
+
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>NSArray *distinctNames = [@[productsArray1,productsArray2] valueForKeyPath:@"@distinctUnionOfArrays.name"];</span></code></pre></td></tr></table></div></figure>
+
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -1314,153 +1435,6 @@ Syntax: border [--color=color] [--width=width] &lt;viewOrLayer&gt;
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2014/04/13/objective-czhong-de-at/">Objective-c中的&#8217;@&#8217;</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2014-04-13T13:56:34+08:00" pubdate data-updated="true">Apr 13<span>th</span>, 2014</time>
-        
-           | <a href="/blog/2014/04/13/objective-czhong-de-at/#disqus_thread"
-             data-disqus-identifier="http://MrBoog.github.io/blog/2014/04/13/objective-czhong-de-at/">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>在学习和使用Objective-c语言的时候，我们随处可见&#8217;@&lsquo;符号，这和其他语言有很大不同。</p>
-
-<p>由于c、c++本身没有&#8217;@&lsquo;，Oc这样设计可能是为了更好地和c、c++混编。正如<a href="http://stackoverflow.com/a/25784">这篇文章</a>所提到的。不过&rsquo;@&lsquo;的用途多种多样，我感觉还是需要整理一下。</p>
-
-<p>网上Steffen Itterheim的<a href="http://www.learn-cocos2d.com/2011/10/complete-list-objectivec-20-compiler-directives/">这篇文章</a>基本把大部分用到&#8217;@&lsquo;的部分罗列了。</p>
-
-<ul>
-<li>@class</li>
-<li>@defs</li>
-<li>@protocol @required @optional @end</li>
-<li>@interface @public @package @protected @private @property @end</li>
-<li>@implementation @synthesize @dynamic @end</li>
-<li>@throw @try @catch @finally</li>
-<li>@synchronized @autoreleasepool</li>
-<li>@selector @encode</li>
-<li>@compatibility_alias  （给某个类起别名）</li>
-<li>@&ldquo;string&rdquo;</li>
-<li>@&lsquo;a&rsquo;  @1  @YES</li>
-<li>@[]</li>
-<li>@{}</li>
-<li>@()</li>
-</ul>
-
-
-<p>以上涉及的这些，有的十分常见，也有的我们可能这辈子都用不到。下面，我们就给几个不常见的，或者比较重要的并且容易忽视的用法，总结一下。</p>
-
-<p>1 @compatibility_alias</p>
-
-<p>关于@compatibility_alias的用法，Mattt Thompson大大举过很好的<a href="http://nshipster.com/at-compiler-directives/">示例</a>。在iOS5下想使用collectionView的效果，无疑<a href="https://github.com/ptshih/PSCollectionView">PSTCollectionView</a> 是最佳的替代方案，下面的代码，可以为PSTCollectView起个别名。这样在iOS5我们也可以制造出使用UICollectionView的幻觉，重点是以后升级可以省去很多麻烦：</p>
-
-<pre><code>    #if __IPHONE_OS_VERSION_MAX_ALLOWED &lt; 60000 
-    @compatibility_alias UICollectionViewController PSTCollectionViewController;        
-    @compatibility_alias UICollectionView PSTCollectionView;    
-    @compatibility_alias UICollectionReusableView PSTCollectionReusableView;    
-    @compatibility_alias UICollectionViewCell PSTCollectionViewCell;    
-    @compatibility_alias UICollectionViewLayout PSTCollectionViewLayout;    
-    @compatibility_alias UICollectionViewFlowLayout PSTCollectionViewFlowLayout;    
-    @compatibility_alias UICollectionViewLayoutAttributes     PSTCollectionViewLayoutAttributes;        
-    @protocol UICollectionViewDataSource &lt;PSTCollectionViewDataSource&gt; @end     
-    @protocol UICollectionViewDelegate &lt;PSTCollectionViewDelegate&gt; @end             
- #endif 
-</code></pre>
-
-<p>2 Object Literals</p>
-
-<p> 2012年苹果加入了如下字面值，简化了代码。</p>
-
-<p> NSArray Literal： @[ ]</p>
-
-<pre><code>    NSArray * array = @[ @1, @"b", @YES];       
-    id str = array[0];      
-</code></pre>
-
-<p> NSDictionary Literal:  @{ }</p>
-
-<pre><code>    NSDictionary * dict = @{ @"key1" : @"obj1", @"key2" : @"obj2"}; 
-    id obj1 = dict[@"key1"];        
-</code></pre>
-
-<p> NSNumber Literal:</p>
-
-<pre><code>    NSNumber * number = @'a';//([NSNumber numberWithChar:'a'])          
-    NSNumber * number = @1;//([NSNumber numberWithInt:1])       
-    NSNumber * number   = @12ll;//([NSNumber numberWithLongLong:12ll])
-    NSNumber * number   = @12ul;//([NSNumber numberWithUnsignedLong:12ul])  
-    NSNumber * number   = @12.3f;//([NSNumber numberWithFloat:12.3f])   
-    NSNumber * number = @YES;//([NSNumber numberWithBool:YES])      
-</code></pre>
-
-<p>NSSet Literal:    <br/>
-以上应该大部分集合类的literal都有了，不过类似的NSSet Literal还没有提供。        <br/>
-我们可以用数组初始化的方式:</p>
-
-<pre><code>NSSet * set = [NSSet setWithArray:@[@"yes",@YES]];
-</code></pre>
-
-<p>当然我们也可以通过自己宏定义来实现：</p>
-
-<pre><code> #define $(...)  [[NSSet alloc] initWithObjects:__VA_ARGS__, nil]   
-  //或者          
- #define $(...)  [NSSet setWithObjects:__VA_ARGS__, nil]        
- //这样就可以用了:       
- NSSet *set = $(@"hello",@"world",@"!");        
-</code></pre>
-
-<p>Expressions:@( )</p>
-
-<p>@( )，会动态评估里面的表达式。返回值：计算后的表达式值的对象常量。如</p>
-
-<pre><code>[@("hello word") class] //返回类型 NSString     
-[@(77 - 88) class] //返回类型 NSNumber。
-</code></pre>
-
-<p>3 @encode         <br/>
-返回一个的char *类型的类型编码,<a href="https://developer.apple.com/library/mac/documentation/Cocoa/Conceptual/ObjCRuntimeGuide/Articles/ocrtTypeEncodings.html">苹果官方文档有介绍</a>     <br/>
-const char * objCType = @encode(float);       <br/>
-printf(&ldquo;%s&rdquo;,objCType);</p>
-
-<p>4 @defs</p>
-
-<p>我们都知道，Oc的类是在c语言的结构体的基础上建立起来的。@defsd会返回Objective-C类相同的布局，例如下述代码，会得到一个相同结构的结构体。</p>
-
-<pre><code>struct cStructure   
-{   
-@defs(NSObject);    
-} *cStruct;     
-</code></pre>
-
-<p>不过，如果你现在尝试如上代码，你会得到：@defs is not support on this platform now 或者 @defs is no longer supported in new ABI(Application Binary Interface)的错误。因为大概xcode3.2后我们就已经无法在现在的Objective-C中使用它了。</p>
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/3/">&larr; Older</a>
@@ -1478,6 +1452,10 @@ printf(&ldquo;%s&rdquo;,objCType);</p>
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2017/03/17/scripting-swift/">Scripting Swift</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2017/02/11/apns-token-based-connection/">APNs Token-Based Connection</a>
       </li>
     
@@ -1491,10 +1469,6 @@ printf(&ldquo;%s&rdquo;,objCType);</p>
     
       <li class="post">
         <a href="/blog/2016/04/20/gem-source-geng-huan/">Gem Source 更换</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2016/03/14/multicast-delegate-in-oc/">Multicast Delegate in Oc</a>
       </li>
     
   </ul>

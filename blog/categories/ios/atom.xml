@@ -4,7 +4,7 @@
   <title><![CDATA[Category: iOS | MrBoog's Blog]]></title>
   <link href="http://MrBoog.github.io/blog/categories/ios/atom.xml" rel="self"/>
   <link href="http://MrBoog.github.io/"/>
-  <updated>2019-01-11T20:25:56+08:00</updated>
+  <updated>2019-01-17T17:41:18+08:00</updated>
   <id>http://MrBoog.github.io/</id>
   <author>
     <name><![CDATA[MrBoog]]></name>
@@ -12,6 +12,167 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Scripting Swift]]></title>
+    <link href="http://MrBoog.github.io/blog/2017/03/17/scripting-swift/"/>
+    <updated>2017-03-17T17:19:06+08:00</updated>
+    <id>http://MrBoog.github.io/blog/2017/03/17/scripting-swift</id>
+    <content type="html"><![CDATA[<p>作为iOS开发者，Swift断断续续也用了几年了，不得不说还真是很好用的。但其实swift不仅可以用来写 iOS or Mac OS，只要装了Xcode，<strong>Swift 在Mac系统下写起脚本来一样很好用的。</strong></p>
+
+<p>Well&hellip; Long story short,  Let&rsquo;s Get Started~~</p>
+
+<h3>Hello world</h3>
+
+<p>首先，最简单的，我们先来在终端用swift输出hello world试试。
+输入 <strong>swift</strong> into the terminal然后回车，输入任何swift语句比如打印hello world，使用<strong>Ctrl-D</strong>退出：</p>
+
+<p><code>
+$ swift
+Welcome to Apple Swift. Type :help for assistance.
+1&gt; print(“Hello World”)
+2&gt;
+</code></p>
+
+<p>这就像Python一样，swift命令行的交互模式叫做 <a href="https://developer.apple.com/swift/blog/?id=18"><strong>Swift REPL (read eval print loop)</strong></a>。
+既然是按照脚本执行，肯定就存在这对应的解析执行脚本的程序。先看看我们平时用的bash：</p>
+
+<p>```
+$ cat /etc/shells</p>
+
+<h1>List of acceptable shells for chpass(1).</h1>
+
+<h1>Ftpd will not allow users to connect who are not using</h1>
+
+<h1>one of these shells.</h1>
+
+<p>/bin/bash
+/bin/csh
+/bin/ksh
+/bin/sh
+/bin/tcsh
+/bin/zsh
+```</p>
+
+<p>这里当然没有了，不过如果我们执行type命令可以看到如下输出：</p>
+
+<p><code>
+$ type swift
+swift is hashed (/usr/bin/swift)
+</code></p>
+
+<p>注意到<strong>/usr/bin/swift</strong>了吗，事实上这就是我们要找的了。</p>
+
+<p>在swift脚本文件最上面加上<strong>#!/usr/bin/swift</strong> (或者 <em>#!/usr/bin/env swift</em>) 就启动swift解释器了, 后面的语句就会在swift环境下面编译。无需多说，这基本和我们以前使用bash时 要加入 <strong>#!/bin/bash</strong>一样。</p>
+
+<p>接下来我们就创建一个demo.swift，做个最简单的测试：</p>
+
+<p><code>
+$touch demo.swift
+$vim demo.swift
+</code></p>
+
+<p>编辑demo.swift文件：</p>
+
+<p>```</p>
+
+<h1>!/usr/bin/swift</h1>
+
+<p>import Foundation
+print(&ldquo;hello world&rdquo;)
+```</p>
+
+<p>编辑保存后，给它可执行的权限后，<strong>./demo.swift</strong>运行肯定就看到输出效果了。这样就是最简单的swift<em>脚本了</em>：</p>
+
+<p><code>
+$chmod +x demo.swift
+$./demo.swift
+hello world
+</code></p>
+
+<h3>Demo time:</h3>
+
+<p>下面简单写一个可以传参数的demo，假设我们要做一个可以一键备份我的博客的功能。</p>
+
+<p>按照之前的步骤，创建一个新的 backup.swift文件，用来提交我的博客到git服务器同时需要提交相应描述。
+这里我们要解决两个问题。</p>
+
+<ol>
+<li>获取命令行传入的参数</li>
+<li>要在swift里面调用其他命令行工具，比如语句: git add .</li>
+</ol>
+
+
+<p>要解决第一个问题，我们需要引用一个新的类<strong>CommandLine </strong>(或者<code>C_ARGC</code> and <code>C_ARGV</code>)。
+CommandLine.arguments是个数组，可以直接通过它拿到想要的参数。
+至于第二个问题，我们需要另一个在Swift脚本中很重要类<strong>Process</strong>。Process可以混合 swift和bash。
+下面直接看下编写后的backup.swift：</p>
+
+<p>```</p>
+
+<h1>!/usr/bin/swift</h1>
+
+<p>import Foundation</p>
+
+<p>func backup() {
+let args = CommandLine.arguments
+guard args.count > 1 else {
+return print(&ldquo;Backup Failed! : \n    Detail: Missing commit message whick should be surrounded by quotation mark.&rdquo;)
+}
+let arg = args[1]
+shell(&ldquo;git&rdquo;, &ldquo;pull&rdquo;)
+shell(&ldquo;git&rdquo;, &ldquo;commit&rdquo;, &ldquo;-am&rdquo;, arg)
+shell(&ldquo;git&rdquo;, &ldquo;push&rdquo;, &ldquo;origin&rdquo;, &ldquo;HEAD:source&rdquo;)
+}</p>
+
+<p>@discardableResult
+func shell(_ args: String&hellip;) &ndash;> Int32 {
+let task = Process()
+task.launchPath = &ldquo;/usr/bin/env&rdquo;
+task.arguments = args
+task.launch()
+task.waitUntilExit()
+return task.terminationStatus
+}</p>
+
+<p>backup()
+```</p>
+
+<p>把这个脚本放在我的博客git目录下，运行就会自动开始将内容Push到git服务器了。</p>
+
+<p><code>
+$ ./backup.swift "Blog: Backup"
+remote: Enumerating objects: 139, done.
+remote: Counting objects: 100% (139/139), done.
+remote: Compressing objects: 100% (33/33), done.
+remote: Total 149 (delta 53), reused 139 (delta 53), pack-reused 10
+Receiving objects: 100% (149/149), 61.23 KiB | 61.00 KiB/s, done.
+...
+</code></p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[APNs Token-Based Connection]]></title>
+    <link href="http://MrBoog.github.io/blog/2017/02/11/apns-token-based-connection/"/>
+    <updated>2017-02-11T20:17:59+08:00</updated>
+    <id>http://MrBoog.github.io/blog/2017/02/11/apns-token-based-connection</id>
+    <content type="html"><![CDATA[<p>2016年苹果上线了新的推送验证方式，使用新的方式我们将不再需要之前的 <strong>.p12</strong>或者<strong>.pem</strong>文件，取而代之的是一个<strong>.p8</strong>文件 (并且不用区分dev和release环境)。一些大的推送服务厂商已经开始支持这种新的方式了，比如国外的<a href="https://firebase.google.com/docs/cloud-messaging/ios/certs">Firebase</a>。这种新的方式优势还是很明显的，比如说</p>
+
+<ul>
+<li>速度更快</li>
+<li>可以支持同一开发者账号下的多个App</li>
+<li>支持多个后台同时使用同一个文件</li>
+<li>不需要考虑生产和开发环境</li>
+<li>不会过期</li>
+</ul>
+
+
+<p>需要注意的是，虽然新的推送验证永远不会过期，但认证密钥和<strong>.p8</strong>文件需要严格保密。如果发现有泄露风险，建议赶紧revoke然后重新创建。</p>
+
+<p>由于不再需要分别配置dev和release环境的证书，所以测试的流程也会简化。<strong>推荐一个开源的基于Node.js的<a href="https://www.npmjs.com/package/apn">推送后台</a>。</strong> 我是只用于测试的，毕竟真正的生产环境大家都还是在用一些大厂的服务，比如谷歌的Firebase或者国内的友盟推送等。这里有个简单用这个Node.js的<a href="https://github.com/MrBoog/Test-ANPS-with-p8-file">Demo</a>, 可以用于开发者自己测试推送使用。</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Symbolicating Crash Log]]></title>
@@ -195,408 +356,6 @@ return [[self class] instanceMethodSignatureForSelector:@selector(doNothing)];
 <p>使用Multicast Delegate，<strong>中间多了一层 protocol 关联</strong>，某种情况下可以解决NSNotificationCenter 跨层带来的过于松散等问题。</p>
 
 <p><a href="https://github.com/MrBoog/SafeMulticastDelegate">DEMO 地址</a></p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[GCD同步操作之 Barriers Groups Semaphore]]></title>
-    <link href="http://MrBoog.github.io/blog/2015/12/28/gcd-synchron/"/>
-    <updated>2015-12-28T21:41:55+08:00</updated>
-    <id>http://MrBoog.github.io/blog/2015/12/28/gcd-synchron</id>
-    <content type="html"><![CDATA[<p>在学会简单的使用GCD处理多线程之后，我们来再深入了解下GCD对多线程的一些同步控制。</p>
-
-<h2>dispatch barriers</h2>
-
-<p>在使用 Concurrent Queue 的时候，有时候我们希望队列中的某项任务，能够被串行执行，来避免资源竞争等多线程问题。比如遇到读写问题，这时候我们就需要使用 dispatch barriers。来保证即使在并行队列中，对某个对象的读和写操作，在同一时刻，只有一个可以被执行。这时候就可以用到 dispatch barriers了。下面我们来讨论一下，不同的队列中barriers的使用：</p>
-
-<ul>
-<li><p>Custom Serial Queue: 在串行队列中，队列都是顺序串行执行，使用barriers没有任何好处。一般来讲我们不需要这么做。</p></li>
-<li><p>Global Concurrent Queue: 这里虽然是并行队列，但这个队列是全局的，我们不能保证别人没有使用这个队列。对这个队列加barriers，可能会影响到其他模块的功能。所以不建议在这个队列中使用。</p></li>
-<li><p>Custom Concurrent Queue: 在自定义的并行队列中使用barriers，是比较合适的方式。</p></li>
-</ul>
-
-
-<p>所以当我们要做的并行操作，可能存在线程安全问题的时候。我们最好考虑新建自定义并行队列，而不是简单地使用系统提供的 Global Queue。</p>
-
-<p>举一个例子，假设某一个类要管理MyClass这个类型的读写，下面列举这个类的一些相关方法:</p>
-
-<p>```</p>
-
-<pre><code>//初始化自定义并发队列
-- (instancetype)init{
-
-    if(self = [super init]){
-        customConcurrentQueue = dispatch_queue_create("com.customConcurrentQueue", DISPATCH_QUEUE_CONCURRENT); 
-    }
-}
-
-//写方法
-- (void)write:(MyClass *)myClass {
-
-    if( myClass ){
-
-        //使用barrier，保证写方法，可以串行执行
-        dispatch_barrier_async(self.customConcurrentQueue, ^{ 
-
-            //写操作
-            ...
-        });
-    }
-}
-
-//读方法
-- (MyClass *)read{
-
-    //要保证，读和写方法不能同时执行，
-    //首先，他们要在同一个队列中 ：self.customConcurrentQueue
-    //其次，读方法要等待读出数据后返回，所以应该是同步操作 ：dispatch_sync
-
-    __block MyClass *myClass = [[MyClass alloc] init];
-
-    dispatch_sync(self.customConcurrentQueue, ^{
-
-        //读操作
-        myClass = ...
-    });
-
-    return myClass;
-}
-</code></pre>
-
-<p>```</p>
-
-<hr />
-
-<h2>dispatch groups</h2>
-
-<p>有时候，我们需要在多个并行任务全部完成后，做一些操作，这时候就需要用到 group来管理了。</p>
-
-<p>举一个简单的例子。我有4个任务要使用并发处理，任务4要等待，任务1、2、3完成后执行。同时，任务4不阻塞当前的线程：</p>
-
-<p>```
-&ndash; (void)testDispatchGroup{</p>
-
-<pre><code>dispatch_queue_t concurrentQueue = dispatch_queue_create("com.test.testConcurrent", DISPATCH_QUEUE_CONCURRENT);
-
-dispatch_group_t group = dispatch_group_create();
-
-//异步操作
-dispatch_group_async(group, concurrentQueue, ^{
-
-    任务1
-});
-
-dispatch_group_async(group, concurrentQueue, ^{
-
-    任务2
-});
-
-dispatch_group_async(group, concurrentQueue, ^{
-
-    任务3
-});
-
-//dispatch_group_notify 中的block执行的是我们最后要做的任务。同时，这里是异步操作，不会阻塞后面其他代码的执行。
-dispatch_group_notify(group, dispatch_get_main_queue(), ^{
-
-    //前面3个任务，都执行完成后，执行里面的block
-    任务4
-});
-
-    ...
-</code></pre>
-
-<p>}</p>
-
-<p>```</p>
-
-<p>再看另一个需求，还是之前的4个任务。唯一的区别是，任务4除了要等待其他任务完成，还要阻塞当前线程：</p>
-
-<p>```
-&ndash; (void)testDispatchGroup{</p>
-
-<pre><code>dispatch_group_t group = dispatch_group_create();
-
-//异步操作
-dispatch_group_async(group, concurrentQueue, ^{
-
-    任务1
-});
-
-dispatch_group_async(group, concurrentQueue, ^{
-
-    任务2
-});
-
-dispatch_group_async(group, concurrentQueue, ^{
-
-    任务3
-});
-
-//dispatch_group_wait 等待上面任务全部完成，阻塞当前线程，直到超过设置的时间
-//使用时，要注意避免阻塞主线程等问题
-dispatch_group_wait(group, DISPATCH_TIME_FOREVER);
-
-任务4
-
-...
-</code></pre>
-
-<p>}</p>
-
-<p>```</p>
-
-<p>另外，除了使用dispatch_group_async管理要做的任务。还可以使用<code>dispatch_group_enter</code>、 <code>dispatch_group_leave</code> 组合的方式，手动通知任务完成。如果使用手动管理的话，我们要注意：<code>enter和leave方法，应该是成对出现的</code>。</p>
-
-<p>dispatch_group_enter(customGroup) : 手动告知customGroup，表示一个任务已经开始执行。</p>
-
-<p>dispatch_group_leave(customGroup) : 手动告知customGroup，表示一个任务已经完成。当所有enter对应的leave方法都执行过后。我们的<code>dispatch_group_notify()</code>或者<code>dispatch_group_wait()</code>，就可以接到任务完成的通知。</p>
-
-<hr />
-
-<h2>dispatch semaphore 信号量</h2>
-
-<p>当有多个消费者，访问有限的资源的时候，<a href="https://en.wikipedia.org/wiki/Semaphore_(programming)">信号量</a> 可以让我们更好的控制。简单来说，我们通过对信号个数的控制，来达到线程间的同步操作。当信号个数为0的时候，当前线程被阻塞，等待信号量增加，当信号量个数大于0的时候，则线程继续执行。</p>
-
-<p>注意，同步的操作都要小心使用，避免死锁等问题。</p>
-
-<p>另外，根据dispatch_semaphore_wait的返回值，可以用于判断某任务是否超时操作。</p>
-
-<p>```</p>
-
-<ul>
-<li><p>(void)testSemaphore{</p>
-
-<p>  //创建 信号量 参数代表初始个数
-  dispatch_semaphore_t semaphore = dispatch_semaphore_create(0);</p>
-
-<p>  dispatch_async(concurrentQueue, ^{</p>
-
-<pre><code>  sleep(2);
-
-  //发送一个信号，信号量个数 +1   
-  dispatch_semaphore_signal(semaphore);
-</code></pre>
-
-<p>  });</p>
-
-<p>  dispatch_async(concurrentQueue, ^{</p>
-
-<pre><code>  dispatch_time_t timeoutTime = dispatch_time(DISPATCH_TIME_NOW, 1 * NSEC_PER_SEC);
-
-  //线程等待，当信号量大于0时 任务继续执行，信号量 -1
-  //线程等待，超过预定的超时时间 任务继续执行 信号量不变
-  //关于返回值：当返回值 不为0 的时候，说明超时
-  if( dispatch_semaphore_wait(semaphore, timeoutTime) ){
-      NSLog(@"time out");
-  }
-</code></pre>
-
-<p>  });
-}</p></li>
-</ul>
-
-
-<p>```</p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[GCD 同步与异步 串行与并行]]></title>
-    <link href="http://MrBoog.github.io/blog/2015/12/14/gcd-part-1/"/>
-    <updated>2015-12-14T15:25:27+08:00</updated>
-    <id>http://MrBoog.github.io/blog/2015/12/14/gcd-part-1</id>
-    <content type="html"><![CDATA[<p>GCD是iOS开发多线程中经常使用的技术，先看一下GCD中的常见的术语</p>
-
-<p>描述多个任务之间同一时刻的运行关系：</p>
-
-<ul>
-<li>serial（串行） 某一时刻，只执行一个任务</li>
-<li>concurrent（并行） 可以同时执行多个任务</li>
-</ul>
-
-
-<p>侧重描述一个函数的执行完成，对其他任务的影响 (既 是否任务在等待某个函数完成，然后才可以运行)：</p>
-
-<ul>
-<li>synchronous（同步） 任务执行完成后reture，（阻塞）</li>
-<li>asynchronous（异步） 不等待任务执行完成，立即reture，（不阻塞当前）</li>
-</ul>
-
-
-<p>在GCD中，我们用串行并行描述队列。这就是在描述，该队列里面的所有任务，相互之间在同一时刻，是怎样的运行关系。是指队列内本身的任务运行顺序。      <br/>
-我们还用同步异步，描述某一个任务。比如说任务A是同步执行的。这就是在说，A任务，会阻塞当前任务，直到A结束。这是指不同任务之间的关系，与队列无关，可以是不同队列，也可以是相同队列。</p>
-
-<p>接下来，我们先来看下，GCD里面的不同队列。</p>
-
-<hr />
-
-<h2>Serial Queues</h2>
-
-<p>在串行队列里，同一时间只能执行一个任务。任务按照被添加进入队列的顺序依次执行。每一个任务只有在前面的任务完成后，才可以开始执行。</p>
-
-<p>系统为我们提供的串行队列</p>
-
-<ul>
-<li><p>main queue ( dispatch_get_main_queue )</p>
-
-<p>  main queue是一个串行队列，有串行队列的一切特性。比较特殊的一点是加入这个队列的任务，都是在主线程执行的。</p></li>
-</ul>
-
-
-<h2>Concurrent Queues</h2>
-
-<p>加入并行队列的任务，执行的顺序也是按照任务被加入队列的顺序执行，这是我们唯一可以保证的。每个任务都不用等待之前的任务完成，同一时刻可以多个任务同时执行。</p>
-
-<p>系统同样有一个全局的并发队列</p>
-
-<ul>
-<li><p>global dispatch queue ( dispatch_get_global_queue )</p>
-
-<p>  这是另一个我们熟悉的并发队列，很多时候我们直接使用这个队列，可以简单处理一些我们需要并发执行的任务。</p></li>
-</ul>
-
-
-<h2>Custom Queue</h2>
-
-<p>除了系统提供的全局队列之外，我们还可以自定义串行或者并行的队列。</p>
-
-<p>```</p>
-
-<pre><code>dispatch_queue_t mySerialQueue = dispatch_queue_create("com.mySerialQueue", DISPATCH_QUEUE_SERIAL);
-
-dispatch_queue_t myConcurrentQueue = dispatch_queue_create("com.myConcurrentQueue", DISPATCH_QUEUE_CONCURRENT);
-</code></pre>
-
-<p>```</p>
-
-<p>上面是几种我们用GCD时，需要使用到的队列。</p>
-
-<p>另外，使用GCD，除了选择正确的队列外，还要关注：我们要执行的任务是同步还是异步执行。</p>
-
-<!--
-同步执行 串行queue 
-        并行queue
-
-异步执行 串行queue 
-        并行queue
--->
-
-
-<hr />
-
-<h2>dispatch_async  异步执行</h2>
-
-<p>dispatch_async 用来用异步的方式执行串行或者并行队列里面的任务，我们来看一下使用 dispatch_async 的几种常见情况：</p>
-
-<ul>
-<li>custom Serial Queue：当我们需要执行几个应该串行执行的任务，又不阻塞当前的时候。</li>
-</ul>
-
-
-<p>```</p>
-
-<pre><code>// task1 task2 顺序依次执行，同时不阻塞others
-
-dispatch_queue_t mySerialQueue = dispatch_queue_create("com.mySerialQueue", NULL);
-
-dispatch_async(mySerialQueue, ^{
-   ...task1
-});
-
-dispatch_async(mySerialQueue, ^{
-    ...task2
-});
-
-...others
-</code></pre>
-
-<p>```</p>
-
-<ul>
-<li><p>main Queue：当我们执行并完成了一段异步的任务，需要回到主线程更新UI的时候，很常见的选择就是使用GCD的 main queue。</p></li>
-<li><p>custom or global concurrent Queue：这个是我们执行非UI任务的常见选择。要注意的是，加入队列的多个任务之间并发执行，我们无法知道那个任务先完成。</p></li>
-</ul>
-
-
-<p>```</p>
-
-<pre><code>dispatch_queue_t myConcurrentQueue = dispatch_queue_create("com.myConcurrentQueue", DISPATCH_QUEUE_CONCURRENT);
-
-dispatch_async(myConcurrentQueue, ^{
-
-    ...task1    
-    dispatch_async(dispatch_get_main_queue(), ^{
-        Update UI 
-    });
-});
-</code></pre>
-
-<p>```</p>
-
-<hr />
-
-<h2>dispatch_sync 同步执行</h2>
-
-<p>大部分时候我们执行dispatch_sync操作，都要格外小心些。</p>
-
-<ul>
-<li>custom or main Serial Queue： 同步执行串行队列时，要注意防止发生死锁，比如下面的代码:</li>
-</ul>
-
-
-<p>```
-//串行队列中，task2 等待 task1完成，所以不会开始。而task1又完成不了，因为task2还没有执行完(甚至都没有开始)。死锁。</p>
-
-<pre><code>dispatch_queue_t mySerialQueue = dispatch_queue_create("com.mySerialQueue", DISPATCH_QUEUE_SERIAL);
-
-dispatch_sync(mySerialQueue, ^{
-
-    ...task1
-    dispatch_sync(mySerialQueue, ^{
-
-         ...task2            
-    });
-});
-</code></pre>
-
-<p>```
-* concurrent Queue：合理使用可以解决一些并发读写问题。例如</p>
-
-<p>```
-//task1 执行结束后，task2才会开始执行。</p>
-
-<pre><code>dispatch_queue_t myConcurrentQueue = dispatch_queue_create("com.myConcurrentQueue", DISPATCH_QUEUE_CONCURRENT);
-
-dispatch_sync(myConcurrentQueue, ^{
-
-    ...task1 读
-});
-
-dispatch_async(myConcurrentQueue, ^{
-
-    ...task2 写
-});
-</code></pre>
-
-<p>```</p>
-
-<hr />
-
-<h2>dispatch_after</h2>
-
-<p>异步延迟操作。实际上 dispatch_after 就像一个延迟执行的 dispatch_async。</p>
-
-<p>```</p>
-
-<pre><code>double delayInSeconds = 1.0;
-dispatch_time_t popTime = dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delayInSeconds * NSEC_PER_SEC));
- dispatch_after(popTime, dispatch_get_main_queue(), ^(void){
-
-});
-</code></pre>
-
-<p>```</p>
 ]]></content>
   </entry>
   
