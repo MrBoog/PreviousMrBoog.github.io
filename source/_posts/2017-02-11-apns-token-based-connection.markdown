@@ -3,7 +3,7 @@ layout: post
 title: "APNs Token-Based Connection"
 date: 2017-02-11 20:17:59 +0800
 comments: true
-categories: 
+categories:  iOS
 ---
 
 2016年苹果上线了新的推送验证方式，使用新的方式我们将不再需要之前的 __.p12__或者__.pem__文件，取而代之的是一个__.p8__文件 (并且不用区分dev和release环境)。一些大的推送服务厂商已经开始支持这种新的方式了，比如国外的[Firebase](https://firebase.google.com/docs/cloud-messaging/ios/certs)。这种新的方式优势还是很明显的，比如说
