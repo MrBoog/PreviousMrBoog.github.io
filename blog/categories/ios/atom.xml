@@ -4,7 +4,7 @@
   <title><![CDATA[Category: iOS | MrBoog's Blog]]></title>
   <link href="http://MrBoog.github.io/blog/categories/ios/atom.xml" rel="self"/>
   <link href="http://MrBoog.github.io/"/>
-  <updated>2019-01-17T18:00:29+08:00</updated>
+  <updated>2019-01-17T18:07:28+08:00</updated>
   <id>http://MrBoog.github.io/</id>
   <author>
     <name><![CDATA[MrBoog]]></name>
@@ -114,31 +114,38 @@ CommandLine.arguments是个数组，可以直接通过它拿到想要的参数�
 
 <p>import Foundation</p>
 
-<p>func backup() {
-let args = CommandLine.arguments
-guard args.count > 1 else {
-return print(&ldquo;Backup Failed! : \n    Detail: Missing commit message whick should be surrounded by quotation mark.&rdquo;)
+<p>func backup() {</p>
+
+<pre><code>let args = CommandLine.arguments
+guard args.count &gt; 1 else {
+    return print("Backup Failed! : \n    Detail: Missing commit message whick should be surrounded by quotation mark.")
 }
 let arg = args[1]
-shell(&ldquo;git&rdquo;, &ldquo;pull&rdquo;)
-shell(&ldquo;git&rdquo;, &ldquo;commit&rdquo;, &ldquo;-am&rdquo;, arg)
-shell(&ldquo;git&rdquo;, &ldquo;push&rdquo;, &ldquo;origin&rdquo;, &ldquo;HEAD:source&rdquo;)
-}</p>
+shell("git", "pull")
+shell("git", "commit", "-am", arg)
+shell("git", "push", "origin", "HEAD:source")
+</code></pre>
+
+<p>}</p>
 
 <p>@discardableResult
-func shell(_ args: String&hellip;) &ndash;> Int32 {
-let task = Process()
-task.launchPath = &ldquo;/usr/bin/env&rdquo;
+func shell(_ args: String&hellip;) &ndash;> Int32 {</p>
+
+<pre><code>let task = Process()
+task.launchPath = "/usr/bin/env"
 task.arguments = args
 task.launch()
 task.waitUntilExit()
 return task.terminationStatus
-}</p>
+</code></pre>
+
+<p>}</p>
 
 <p>backup()
 ```</p>
 
-<p>把这个脚本放在我的博客git目录下，运行就会自动开始将内容Push到git服务器了。</p>
+<p>这个例子中，函数 <code>shell(_ args: String...) -&gt; Int32</code> 用来实现Swift调用其他命令行命令。<code>backup()</code> 会先读取输入的参数，然后执行对应的备份操作。     <br/>
+把这个脚本放在我的博客git目录下，运行就会自动开始将内容Push到git服务器了。</p>
 
 <p><code>
 $ ./backup.swift "Blog: Backup"

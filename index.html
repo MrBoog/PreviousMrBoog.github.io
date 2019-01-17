@@ -234,30 +234,31 @@ CommandLine.arguments是个数组，可以直接通过它拿到想要的参数�
 </span><span class='line'>import Foundation
 </span><span class='line'>
 </span><span class='line'>func backup() {
-</span><span class='line'>let args = CommandLine.arguments
-</span><span class='line'>guard args.count &gt; 1 else {
-</span><span class='line'>return print("Backup Failed! : \n    Detail: Missing commit message whick should be surrounded by quotation mark.")
-</span><span class='line'>}
-</span><span class='line'>let arg = args[1]
-</span><span class='line'>shell("git", "pull")
-</span><span class='line'>shell("git", "commit", "-am", arg)
-</span><span class='line'>shell("git", "push", "origin", "HEAD:source")
+</span><span class='line'>    let args = CommandLine.arguments
+</span><span class='line'>    guard args.count &gt; 1 else {
+</span><span class='line'>        return print("Backup Failed! : \n    Detail: Missing commit message whick should be surrounded by quotation mark.")
+</span><span class='line'>    }
+</span><span class='line'>    let arg = args[1]
+</span><span class='line'>    shell("git", "pull")
+</span><span class='line'>    shell("git", "commit", "-am", arg)
+</span><span class='line'>    shell("git", "push", "origin", "HEAD:source")
 </span><span class='line'>}
 </span><span class='line'>
 </span><span class='line'>@discardableResult
 </span><span class='line'>func shell(_ args: String...) -&gt; Int32 {
-</span><span class='line'>let task = Process()
-</span><span class='line'>task.launchPath = "/usr/bin/env"
-</span><span class='line'>task.arguments = args
-</span><span class='line'>task.launch()
-</span><span class='line'>task.waitUntilExit()
-</span><span class='line'>return task.terminationStatus
+</span><span class='line'>    let task = Process()
+</span><span class='line'>    task.launchPath = "/usr/bin/env"
+</span><span class='line'>    task.arguments = args
+</span><span class='line'>    task.launch()
+</span><span class='line'>    task.waitUntilExit()
+</span><span class='line'>    return task.terminationStatus
 </span><span class='line'>}
 </span><span class='line'>
 </span><span class='line'>backup()</span></code></pre></td></tr></table></div></figure>
 
 
-<p>把这个脚本放在我的博客git目录下，运行就会自动开始将内容Push到git服务器了。</p>
+<p>这个例子中，函数 <code>shell(_ args: String...) -&gt; Int32</code> 用来实现Swift调用其他命令行命令。<code>backup()</code> 会先读取输入的参数，然后执行对应的备份操作。     <br/>
+把这个脚本放在我的博客git目录下，运行就会自动开始将内容Push到git服务器了。</p>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
